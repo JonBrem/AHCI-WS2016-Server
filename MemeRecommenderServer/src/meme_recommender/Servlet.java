@@ -1,4 +1,4 @@
-package de.ur.ahci.meme_recommender;
+package meme_recommender;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -11,6 +11,7 @@ import java.util.Map;
 
 /**
  * Created by jonbr on 26.10.2015.
+ * Modified by jueha on same day!
  */
 public class Servlet extends HttpServlet {
 
@@ -26,7 +27,6 @@ public class Servlet extends HttpServlet {
         if(params.containsKey("num")) {
             writer.write("" + 2 * Integer.parseInt(params.get("num")[0]));
         }
-
     }
 
     @Override
@@ -38,6 +38,4 @@ public class Servlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         handleRequest(req, resp);
     }
-
-
 }

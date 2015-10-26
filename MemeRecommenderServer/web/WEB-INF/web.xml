@@ -6,12 +6,11 @@
 
     <servlet>
         <servlet-name>MemeRecommender</servlet-name>
-        <servlet-class>de.ur.ahci.meme_recommender.Servlet</servlet-class>
+        <servlet-class>meme_recommender.Servlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
         <servlet-name>MemeRecommender</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
-
 </web-app>
