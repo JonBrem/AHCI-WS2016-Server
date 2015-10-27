@@ -18,7 +18,7 @@ public class NineGagSite extends CrawlSite {
 
     public NineGagSite(String url, Document doc, String tag) {
         super(url, doc);
-        this.tag = "cute";
+        this.tag = tag;
     }
 
     @Override

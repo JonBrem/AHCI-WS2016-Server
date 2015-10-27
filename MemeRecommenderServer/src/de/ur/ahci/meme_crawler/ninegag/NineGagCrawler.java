@@ -141,7 +141,7 @@ public class NineGagCrawler extends AbstractCrawler {
         } else {
             File lastFile = filesInUrlDBFolder[filesInUrlDBFolder.length - 1];
             List<String> linesInLastFile = getLinesInFile(lastFile.getAbsolutePath());
-            String number = lastFile.getName().substring(lastFile.getName().indexOf("."));
+            String number = lastFile.getName().substring(0, lastFile.getName().indexOf("."));
             if(linesInLastFile.size() >= 100) {
                 fileName = dir + "/" + nDigits(8, (Integer.parseInt(number) + 1)) + ".txt";
             } else {
