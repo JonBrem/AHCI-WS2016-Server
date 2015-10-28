@@ -1,12 +1,14 @@
 package de.ur.ahci.model;
 
+import de.ur.ahci.database.Storable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by jonbr on 27.10.2015.
  */
-public class Meme {
+public class Meme extends Storable {
 
     private String title;
     private String url;
@@ -61,4 +63,18 @@ public class Meme {
         return url + "\t" + imgUrl + "\t" + tagsString + "\t" + title;
     }
 
+    @Override
+    public String getTableName() {
+        return "memes";
+    }
+
+    @Override
+    public String getColumnsString() {
+        return "url,img_url,title";
+    }
+
+    @Override
+    public String getValuesString() {
+        return "\"" + this.url + "\",\"" + this.imgUrl + "\",\"" + this.title + "\"";
+    }
 }

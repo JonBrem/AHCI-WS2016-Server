@@ -1,5 +1,6 @@
 package meme_recommender;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -16,17 +17,10 @@ import java.util.Map;
 public class Servlet extends HttpServlet {
 
     public Servlet() {
-
     }
 
     private void handleRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Map<String, String[]> params = req.getParameterMap();
-        Cookie[] cookies = req.getCookies();
-        PrintWriter writer = resp.getWriter();
-
-        if(params.containsKey("num")) {
-            writer.write("" + 2 * Integer.parseInt(params.get("num")[0]));
-        }
+        RequestHandler.manageRequest(req, resp, this.getServletContext());
     }
 
     @Override
