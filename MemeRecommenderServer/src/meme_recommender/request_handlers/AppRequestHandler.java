@@ -1,8 +1,7 @@
-package meme_recommender.RequestHandlers;
+package meme_recommender.request_handlers;
 
 import de.ur.ahci.model.Meme;
 import meme_recommender.RequestHandler;
-import util.FileUtility;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
@@ -23,10 +22,12 @@ public class AppRequestHandler extends RequestHandler {
 
         uri = uri.substring(1);
 
-        if(uri.startsWith("load_images")) {
+        if (uri.startsWith("load_images")) {
             out.write(getRecommendedImages());
         } else if (uri.startsWith("sign_in")) {
             out.write("{status: \"accept\"}");
+        } else if (uri.startsWith("test_storage"))  {
+
         } else {
             out.write("{}");
         }

@@ -1,7 +1,6 @@
-package meme_recommender.RequestHandlers;
+package meme_recommender.request_handlers;
 
 import meme_recommender.RequestHandler;
-import meme_recommender.Servlet;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;

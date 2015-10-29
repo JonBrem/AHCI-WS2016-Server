@@ -13,4 +13,8 @@
         <servlet-name>MemeRecommender</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+    
+    <listener>
+        <listener-class>meme_recommender.DatabaseContextListener</listener-class>
+    </listener>
 </web-app>

@@ -1,7 +1,7 @@
 package meme_recommender;
 
-import meme_recommender.RequestHandlers.AppRequestHandler;
-import meme_recommender.RequestHandlers.WebRequestHandler;
+import meme_recommender.request_handlers.AppRequestHandler;
+import meme_recommender.request_handlers.WebRequestHandler;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by jonbr on 28.10.2015.
