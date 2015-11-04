@@ -5,9 +5,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import util.Const;
 
+import javax.net.ssl.HttpsURLConnection;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -127,6 +130,70 @@ public abstract class AbstractCrawler {
             }
 
             onWaitFinished();
+        }
+
+    }
+
+    protected class MemeStoreThread implements Runnable {
+
+        private String url;
+        private Meme meme;
+
+        public MemeStoreThread(String baseUrl, Meme meme) {
+            this.url = baseUrl;
+            this.meme = meme;
+        }
+
+        @Override
+        public void run() {
+            try {
+                String data = memeToUrlParams();
+                byte[] dataAsBytes = data.getBytes();
+
+                HttpURLConnection urlConnection = (HttpURLConnection) URI.create(MemeStoreThread.this.url).toURL().openConnection();
+
+                setUrlConnectionProperties(urlConnection);
+                try (DataOutputStream writer = new DataOutputStream(urlConnection.getOutputStream())) {
+                    writer.write(dataAsBytes);
+                }
+
+                Const.log(Const.LEVEL_VERBOSE, "data sent to server: " + data);
+                Const.log(Const.LEVEL_VERBOSE, "Response from server: " + urlConnection.getResponseCode() + "\t" + urlConnection.getResponseMessage());
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private String memeToUrlParams() {
+            String urlParams = "";
+            try {
+                urlParams += "title=" + URLEncoder.encode(meme.getTitle(), "UTF-8");
+                urlParams += "&img_url=" + URLEncoder.encode(meme.getImgUrl(), "UTF-8");
+                urlParams += "&url=" + URLEncoder.encode(meme.getUrl(), "UTF-8");
+
+                for(String tag : meme.getTags()) {
+                    urlParams += "&tag=" + URLEncoder.encode(tag, "UTF-8");
+                }
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            return urlParams;
+        }
+
+        private void setUrlConnectionProperties(HttpURLConnection urlConnection) {
+            urlConnection.setDoInput(true);
+            urlConnection.setDoOutput(true);
+
+            try {
+                urlConnection.setRequestMethod("POST");
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            }
+            urlConnection.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
+            urlConnection.setRequestProperty("charset", "UTF-8");
         }
 
     }

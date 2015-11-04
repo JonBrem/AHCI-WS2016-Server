@@ -1,7 +1,9 @@
 package meme_recommender;
 
 import meme_recommender.request_handlers.AppRequestHandler;
+import meme_recommender.request_handlers.CrawlerRequestHandler;
 import meme_recommender.request_handlers.WebRequestHandler;
+import util.Const;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
@@ -23,9 +25,12 @@ public abstract class RequestHandler {
         requestHandlers = new ArrayList<>();
         requestHandlers.add(new WebRequestHandler());
         requestHandlers.add(new AppRequestHandler());
+        requestHandlers.add(new CrawlerRequestHandler());
     }
 
     public static void manageRequest(HttpServletRequest req, HttpServletResponse resp, ServletContext ctx) {
+        Const.log(Const.LEVEL_VERBOSE, "Managing Request: " + req.getRequestURI());
+
         Cookie[] cookies = req.getCookies();
         PrintWriter writer;
         try {

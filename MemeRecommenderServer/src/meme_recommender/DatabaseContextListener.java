@@ -1,5 +1,9 @@
 package meme_recommender;
 
+import de.ur.ahci.model.Meme;
+import de.ur.ahci.model.Rating;
+import de.ur.ahci.model.Tag;
+import de.ur.ahci.model.User;
 import org.apache.derby.drda.NetworkServerControl;
 import util.Const;
 
@@ -14,7 +18,7 @@ import java.util.Set;
  */
 public class DatabaseContextListener implements ServletContextListener {
 
-    public static final int DB_VERSION = 0;
+    public static final int DB_VERSION = 1;
     private static String dbURL = "jdbc:derby://localhost:1527/myDB;create=true;user=me;password=mine";
 
     private static DatabaseContextListener instance;
@@ -42,6 +46,39 @@ public class DatabaseContextListener implements ServletContextListener {
         }
     }
 
+    /**
+     * This should be the only point where changes to the database are made.
+     * @param version
+     */
+    private void updateDbFrom(int version) {
+        if(version == 0) {
+            Const.log(Const.LEVEL_INFO, "Trying to update DB from version 0 to version 1.");
+            try {
+                conn.createStatement().executeUpdate(Meme.CREATE_TABLE);
+                conn.createStatement().executeUpdate(Rating.CREATE_TABLE);
+                conn.createStatement().executeUpdate(Tag.CREATE_TABLE_TAGS);
+                conn.createStatement().executeUpdate(Tag.CREATE_TABLE_MEME_TAGS);
+                conn.createStatement().executeUpdate(User.CREATE_TABLE);
+                conn.createStatement().executeUpdate(User.CREATE_TABLE_USER_FACE_LANDMARKS);
+
+                conn.createStatement().executeUpdate("UPDATE version SET version = 1");
+
+                conn.commit();
+                Const.log(Const.LEVEL_INFO, "Updated DB to version 1.");
+                updateDbFrom(1);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } else if (version == 1) {
+
+        }
+    }
+
+    /**
+     * Checks if the db is up to date, i.e., if the version in the Java Constant "DB_VERSION"
+     * matches the version in the database. If that is not the case, updateDbFrom(...) will be invoked.
+     */
     private void checkVersion() {
         Const.log(Const.LEVEL_VERBOSE, "Checking version. DB_VERSION should be: " + DB_VERSION);
         try {
@@ -66,9 +103,9 @@ public class DatabaseContextListener implements ServletContextListener {
         }
     }
 
-    private void updateDbFrom(int version) {
-    }
-
+    /**
+     * Creates the table where the version variable is stored.
+     */
     private void createVersionTable() {
         try {
             conn.createStatement().executeUpdate("CREATE TABLE version(version INTEGER)");
@@ -80,6 +117,31 @@ public class DatabaseContextListener implements ServletContextListener {
         }
     }
 
+    public void executeUpdate(String sql) {
+        Statement statement = null;
+        try {
+            statement = conn.createStatement();
+            statement.executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public ResultSet query(String sql) {
+        try {
+            return conn.createStatement().executeQuery(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Is called automatically when the server is started.
+     * Starts the derby db server (port 1527 by default) and opens a connection to it.
+     * @param servletContextEvent
+     */
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         instance = this;
@@ -93,6 +155,11 @@ public class DatabaseContextListener implements ServletContextListener {
         }
     }
 
+    /**
+     * Is called automatically when the server is stopped.
+     * stops the server.
+     * @param servletContextEvent
+     */
     @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
 
@@ -106,7 +173,6 @@ public class DatabaseContextListener implements ServletContextListener {
 
         instance = null;
     }
-
 
     private Set<String> getDBTables(Connection targetDBConn) throws SQLException
     {

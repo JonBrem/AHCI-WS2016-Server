@@ -8,6 +8,8 @@ import util.Const;
 import util.FileUtility;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,10 +21,9 @@ public class NineGagCrawler extends AbstractCrawler {
 
     private static final String FRONTIER = "crawl_dummy_db/nine_gag/url_frontier/frontier_XTAGX.txt";
     public static final String CRAWLED_SITES = "crawl_dummy_db/nine_gag/crawled_sites";
-    public static final String MEME_FOLDER = "crawl_dummy_db/nine_gag/memes";
 
     public static void main(String... args) {
-        new NineGagCrawler("cute").startCrawl();
+        new NineGagCrawler("meme").startCrawl();
     }
 
     private FileUtility fileUtility;
@@ -97,12 +98,7 @@ public class NineGagCrawler extends AbstractCrawler {
 
     @Override
     public void storeMeme(Meme meme) {
-        Const.log(Const.LEVEL_VERBOSE, "Storing meme at " + meme.getUrl());
-
-        String fileName = getFileNameInDBDir(MEME_FOLDER);
-
-        fileUtility.writeLine(fileName, meme.toString());
-        fileUtility.closeWriter(fileName);
+        new Thread(new MemeStoreThread("http://localhost:8080/crawler/insert", meme)).start();
     }
 
     private String nDigits(int n, int num) {

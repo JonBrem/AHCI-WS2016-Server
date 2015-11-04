@@ -1,14 +1,24 @@
 package de.ur.ahci.model;
 
-import de.ur.ahci.database.Storable;
+import meme_recommender.DatabaseContextListener;
+import util.Const;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by jonbr on 27.10.2015.
  */
-public class Meme extends Storable {
+public class Meme {
+
+    public static final String CREATE_TABLE  = "CREATE TABLE memes(" +
+            "id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1), " +
+            "url VARCHAR(255), " +
+            "img_url VARCHAR(255), " +
+            "title VARCHAR(510)" +
+            ")";
 
     private String title;
     private String url;
@@ -63,18 +73,34 @@ public class Meme extends Storable {
         return url + "\t" + imgUrl + "\t" + tagsString + "\t" + title;
     }
 
-    @Override
-    public String getTableName() {
-        return "memes";
+    /**
+     * Inserts the meme into the database.
+     * Returns the meme's id.
+     * @param db
+     * @return
+     */
+    public int insert(DatabaseContextListener db) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("INSERT INTO memes (url,img_url,title) VALUES (").
+                append("'").append(url).append("',").
+                append("'").append(imgUrl).append("',").
+                append("'").append(title.replaceAll("'", "&quot;")).append("')");
+
+        Const.log(Const.LEVEL_DEBUG, builder.toString());
+        db.executeUpdate(builder.toString());
+
+        ResultSet results = db.query("SELECT id FROM memes WHERE url='" + url + "'");
+        try {
+            if(results.next()) {
+                return results.getInt(1);
+            } else {
+                return -1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 
-    @Override
-    public String getColumnsString() {
-        return "url,img_url,title";
-    }
-
-    @Override
-    public String getValuesString() {
-        return "\"" + this.url + "\",\"" + this.imgUrl + "\",\"" + this.title + "\"";
-    }
 }
