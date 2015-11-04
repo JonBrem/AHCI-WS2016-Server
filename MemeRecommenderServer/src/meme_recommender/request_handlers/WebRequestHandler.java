@@ -25,12 +25,14 @@ public class WebRequestHandler extends RequestHandler {
            s = ctx.getResourceAsStream("/WEB-INF/" + req.getRequestURI());
         }
 
-
+        if(s == null) {
+            return false;
+        }
         BufferedReader r = new BufferedReader(new InputStreamReader(s));
         String line;
         try {
             while((line = r.readLine()) != null) {
-                out.write(line);
+                out.write(line + "\n");
             }
             return true;
         } catch (IOException e) {

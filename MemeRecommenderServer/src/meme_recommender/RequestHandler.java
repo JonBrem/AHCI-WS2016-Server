@@ -2,6 +2,7 @@ package meme_recommender;
 
 import meme_recommender.request_handlers.AppRequestHandler;
 import meme_recommender.request_handlers.CrawlerRequestHandler;
+import meme_recommender.request_handlers.DbInspectionRequestHandler;
 import meme_recommender.request_handlers.WebRequestHandler;
 import util.Const;
 
@@ -26,6 +27,7 @@ public abstract class RequestHandler {
         requestHandlers.add(new WebRequestHandler());
         requestHandlers.add(new AppRequestHandler());
         requestHandlers.add(new CrawlerRequestHandler());
+        requestHandlers.add(new DbInspectionRequestHandler());
     }
 
     public static void manageRequest(HttpServletRequest req, HttpServletResponse resp, ServletContext ctx) {

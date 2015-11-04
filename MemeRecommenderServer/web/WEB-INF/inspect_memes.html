@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inspect Memes</title>
+
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="js/jquery.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div id="meme" class="row">	
+			<div class="col-md-8">
+				<h2 id="title">
+				</h2>
+				<div class="image">
+					<img id="img_here" />
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="input-group">
+					<input type="number" class="form-control" id="meme_id_input" />
+					<span class="input-group-btn">
+						<button class="btn btn-default" id="load_specific_meme_button">Load</button>
+					</span>
+				</div>
+
+				<button class="btn btn-default" id="load_prev_meme_button">Load prev meme</button>
+				<button class="btn btn-default" id="load_next_meme_button">Load next meme</button>
+				<button class="btn btn-default" id="save_meme_button">Save meme with tags</button>
+			</div>
+		</div>
+
+		<div id="tags" class="row">
+			
+		</div>
+
+		<button type="button" class="btn btn-success" id="add_tag_button">Create new tag</button>
+	</div>
+
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/MemeInspector.js"></script>
+    <script src="js/LoadImages.js"></script>
+    <script src="js/Tags.js"></script>
+    <script>
+	    jQuery(document).ready(function($) {
+	    	MemeInspector().init();
+	    });
+    </script>
+</body>
+</html>

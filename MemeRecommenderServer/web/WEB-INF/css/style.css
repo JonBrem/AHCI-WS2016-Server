@@ -1,0 +1,8 @@
+.tag_root {
+    margin-bottom: 10px;
+}
+
+.image {
+	max-height: 300px;
+	overflow-y: scroll;
+}
