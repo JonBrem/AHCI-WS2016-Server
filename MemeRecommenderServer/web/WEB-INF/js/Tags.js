@@ -7,6 +7,9 @@ function Tag() {
 	priv.rootElement;
 	priv.saveElement;
 	priv.inputElement;
+	priv.removeElement;
+
+	priv.shouldDelete = false;
 
 	publ.create = function(name, id, appendTo) {
 		priv.rootElement = $('<div class="col-md-4"><div class="tag_root input-group">' +
@@ -17,6 +20,9 @@ function Tag() {
 	      		'<span class="input-group-btn">' + 
 	        		'<button class="btn btn-default save_button" type="button">Save</button>' + 
 	      		'</span>' + 
+	      		'<span class="input-group-btn">' + 
+	        		'<button class="btn btn-danger remove_button" type="button">X</button>' + 
+	      		'</span>' + 
 			'</div></div>');
 
 		if(id !== false) {
@@ -26,8 +32,15 @@ function Tag() {
 		appendTo.append(priv.rootElement);
 		priv.inputElement = priv.rootElement.find('.tag_input');
 		priv.saveElement = priv.rootElement.find(".save_button");
+		priv.removeElement = priv.rootElement.find(".remove_button");
 
 		priv.saveElement.on("click", priv.save);
+		priv.removeElement.on("click", function() {
+			var r = confirm("Are you sure you want to delete Tag " + priv.inputElement.val());
+			if(r) {
+				priv.deleteTag();
+			}
+		});
 	};
 
 	priv.save = function() {
@@ -69,6 +82,22 @@ function Tag() {
 
 	publ.getTagName = function() {
 		return priv.rootElement.find(".tag_input").val();
+	};
+
+	priv.deleteTag = function() {
+		priv.rootElement.remove();
+		shouldDelete = true;
+
+		if(priv.tagId == -1) return;
+		$.ajax({
+			url: '/inspect_db/delete_tag',
+			data: {tag_id: priv.tagId}
+		});
+		$("body").trigger('deletedTag');
+	};
+
+	publ.shouldDelete = function() {
+		return priv.shouldDelete;
 	};
 
 	return publ;

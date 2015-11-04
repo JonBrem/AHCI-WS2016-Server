@@ -2,7 +2,6 @@
     margin-bottom: 10px;
 }
 
-.image {
-	max-height: 300px;
-	overflow-y: scroll;
+.image img {
+	max-height: 500px;
 }

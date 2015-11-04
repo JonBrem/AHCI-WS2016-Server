@@ -7,11 +7,18 @@ function LoadImages(tagCon) {
 		priv.loadNextMemeButton = $("#load_next_meme_button");
 		priv.loadSpecificImageButton = $("#load_specific_meme_button");
 		priv.saveMemeButton = $("#save_meme_button");
+		priv.deleteMemeButton = $("#delete_meme_button");
 
 		priv.loadPrevMemeButton.on("click", publ.loadPrevImage);
 		priv.loadNextMemeButton.on("click", publ.loadNextImage);
 		priv.loadSpecificImageButton.on("click", publ.loadSpecificImage);
 		priv.saveMemeButton.on("click", publ.saveMeme);
+		priv.deleteMemeButton.on("click", function() {
+			var r = confirm("Delete meme?");
+			if(r) {
+				priv.deleteMeme();
+			}
+		});
 	};
 
 
@@ -79,12 +86,18 @@ function LoadImages(tagCon) {
 			}
 		}
 
-		console.log($("#meme_id_input").val(), activeTagString);
-
 		$.ajax({
 			url: '/inspect_db/add_tags_for_meme',
 			data: {meme_id: $("#meme_id_input").val(), "tag_id" : activeTagString},
 		});
+	};
+
+	priv.deleteMeme = function() {
+		$.ajax({
+			url: '/inspect_db/delete_meme',
+			data: {meme_id: $("#meme_id_input").val()},
+		});
+		publ.loadNextImage();		
 	};
 
 	return publ;

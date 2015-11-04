@@ -43,7 +43,23 @@ public class DbInspectionRequestHandler extends RequestHandler {
             handleLoadMemeRequest(out, req);
         } else if (path.equals("add_tags_for_meme")) {
             handleAddTagsForMemeRequest(req);
+        } else if (path.equals("delete_tag")) {
+            handleDeleteTagRequest(req.getParameterMap());
+        } else if (path.equals("delete_meme")) {
+            handleDeleteMemeRequest(req.getParameterMap());
         }
+    }
+
+    private void handleDeleteMemeRequest(Map<String, String[]> parameterMap) {
+        DatabaseContextListener db = DatabaseContextListener.getInstance();
+        db.executeUpdate("DELETE FROM meme_tags WHERE meme_id=" + parameterMap.get("meme_id")[0]);
+        db.executeUpdate("DELETE FROM memes WHERE id=" + parameterMap.get("meme_id")[0]);
+    }
+
+    private void handleDeleteTagRequest(Map<String, String[]> parameterMap) {
+        DatabaseContextListener db = DatabaseContextListener.getInstance();
+        db.executeUpdate("DELETE FROM meme_tags WHERE tag_id=" + parameterMap.get("tag_id")[0]);
+        db.executeUpdate("DELETE FROM tags WHERE id=" + parameterMap.get("tag_id")[0]);
     }
 
 

@@ -12,6 +12,8 @@ function MemeInspector() {
 		priv.meme = LoadImages(publ);
 		priv.meme.init();
 		priv.loadFirstImage();
+
+		$("body").on("deletedTag", priv.onTagDeleted);
 	};
 
 	// show tags
@@ -67,6 +69,16 @@ function MemeInspector() {
 					priv.tags[j].setCheckboxStatus(true);
 				}
 			}
+		}
+	};
+
+	priv.onTagDeleted = function() {
+		var index = -1;
+		for(var i = 0; i < priv.tags.length; i++) {
+			if(priv.tags[i].shouldDelete()) index = i;
+		}
+		if(index != -1) {
+			tags.splice(index, 1);
 		}
 	};
 
