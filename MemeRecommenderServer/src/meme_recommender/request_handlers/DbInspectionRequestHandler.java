@@ -175,7 +175,7 @@ public class DbInspectionRequestHandler extends RequestHandler {
 
         DatabaseContextListener db = DatabaseContextListener.getInstance();
 
-        ResultSet results = db.query("SELECT * FROM tags");
+        ResultSet results = db.query("SELECT id, tag_name FROM tags");
         try {
             while (results.next()) {
                 Tag tag = new Tag();

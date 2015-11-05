@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public class DatabaseContextListener implements ServletContextListener {
 
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 2;
     private static String dbURL = "jdbc:derby://localhost:1527/myDB;create=true;user=me;password=mine";
 
     private static DatabaseContextListener instance;
@@ -40,6 +40,7 @@ public class DatabaseContextListener implements ServletContextListener {
             if(!(getDBTables(conn).contains("version") || getDBTables(conn).contains("VERSION"))) {
                 createVersionTable();
             }
+
             checkVersion();
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,6 +72,28 @@ public class DatabaseContextListener implements ServletContextListener {
             }
 
         } else if (version == 1) {
+            Const.log(Const.LEVEL_INFO, "Trying to update DB to version 2.");
+            try {
+                for(String table : new String[]{"memes", "ratings", "tags", "meme_tags", "users"}) {
+                    try {
+                        conn.createStatement().executeUpdate("DROP TABLE " + table);
+                    } catch (SQLException e) {
+
+                    }
+                }
+                conn.createStatement().executeUpdate(Meme.CREATE_TABLE);
+                conn.createStatement().executeUpdate(Rating.CREATE_TABLE);
+                conn.createStatement().executeUpdate(Tag.CREATE_TABLE_TAGS);
+                conn.createStatement().executeUpdate(Tag.CREATE_TABLE_MEME_TAGS);
+                conn.createStatement().executeUpdate(User.CREATE_TABLE);
+
+                conn.createStatement().executeUpdate("UPDATE version SET version = 2");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            updateDbFrom(2);
+        } else if (version == 2) {
 
         }
     }
@@ -191,6 +214,44 @@ public class DatabaseContextListener implements ServletContextListener {
         while (rs.next())
         {
             set.add(rs.getString("TABLE_NAME").toLowerCase());
+        }
+    }
+
+    public void export(String tableName, String fileName) {
+        PreparedStatement ps = null;
+        try {
+            ps = conn.prepareStatement(
+                    "CALL SYSCS_UTIL.SYSCS_EXPORT_TABLE (?,?,?,?,?,?)");
+            ps.setString(1,null);
+            ps.setString(2,tableName.toUpperCase());
+            ps.setString(3,fileName);
+            ps.setString(4,"%");
+            ps.setString(5,null);
+            ps.setString(6,null);
+            ps.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void importData(String tableName, String fileName, String columns, String columnIndices){
+
+        PreparedStatement ps = null;
+        try {
+            ps = conn.prepareStatement(
+                    "CALL SYSCS_UTIL.SYSCS_IMPORT_DATA (?,?,?,?,?,?,?,?,?)");
+            ps.setString(1,null);
+            ps.setString(2,tableName.toUpperCase());
+            ps.setString(3,columns.toUpperCase());
+            ps.setString(4,columnIndices);
+            ps.setString(5,fileName);
+            ps.setString(6,"%");
+            ps.setString(7,null);
+            ps.setString(8,null);
+            ps.setInt(9, 0);
+            ps.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

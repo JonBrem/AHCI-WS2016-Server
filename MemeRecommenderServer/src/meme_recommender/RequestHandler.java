@@ -1,9 +1,6 @@
 package meme_recommender;
 
-import meme_recommender.request_handlers.AppRequestHandler;
-import meme_recommender.request_handlers.CrawlerRequestHandler;
-import meme_recommender.request_handlers.DbInspectionRequestHandler;
-import meme_recommender.request_handlers.WebRequestHandler;
+import meme_recommender.request_handlers.*;
 import util.Const;
 
 import javax.servlet.ServletContext;
@@ -28,6 +25,7 @@ public abstract class RequestHandler {
         requestHandlers.add(new AppRequestHandler());
         requestHandlers.add(new CrawlerRequestHandler());
         requestHandlers.add(new DbInspectionRequestHandler());
+        requestHandlers.add(new DbExportImportRH());
     }
 
     public static void manageRequest(HttpServletRequest req, HttpServletResponse resp, ServletContext ctx) {

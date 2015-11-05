@@ -87,7 +87,7 @@ public class CrawlerRequestHandler extends RequestHandler {
     private void printWholeMemeDB(PrintWriter out) {
         DatabaseContextListener db = DatabaseContextListener.getInstance();
 
-        ResultSet results = db.query("SELECT * FROM memes");
+        ResultSet results = db.query("SELECT id, url, img_url, title FROM memes");
 
         try {
             while(results.next()) {

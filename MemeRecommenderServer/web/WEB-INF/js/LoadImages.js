@@ -31,17 +31,22 @@ function LoadImages(tagCon) {
 	};
 
 	priv.onMemeLoaded = function(e) {
-		e = JSON.parse(e);
-		$(".tag_checkbox").prop("checked", false);
+		try {
+			e = JSON.parse(e);
+			$(".tag_checkbox").prop("checked", false);
 
-		if(e.status && e.status=="no memes found") return;
+			if(e.status && e.status=="no memes found") return;
 
-		$("#img_here").attr("src", e.img_url);
-		$("#title").html(e.title);
-		$("#meme_id_input").val(e.id);
+			$("#img_here").attr("src", e.img_url);
+			$("#title").html(e.title);
+			$("#meme_id_input").val(e.id);
 
-		if(e.tags) {
-			priv.setActiveTags(e.tags);
+			if(e.tags) {
+				priv.setActiveTags(e.tags);
+			}
+		} catch(exception) {
+			$("#meme_id_input").val(parseInt($("#meme_id_input").val()) - 2);
+			publ.loadNextImage();
 		}
 	};
 
