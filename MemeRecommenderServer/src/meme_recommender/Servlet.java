@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.util.Map;
 
 /**
@@ -16,7 +17,11 @@ import java.util.Map;
  */
 public class Servlet extends HttpServlet {
 
-    public Servlet() {
+    public Servlet() throws Exception {
+        InetAddress ip = InetAddress.getLocalHost();
+        String hostname = ip.getHostName();
+        System.out.println("Your current IP address : " + ip);
+        System.out.println("Your current Hostname : " + hostname);
     }
 
     private void handleRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
