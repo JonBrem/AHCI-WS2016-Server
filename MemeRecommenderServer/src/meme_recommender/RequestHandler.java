@@ -26,6 +26,7 @@ public abstract class RequestHandler {
         requestHandlers.add(new CrawlerRequestHandler());
         requestHandlers.add(new DbInspectionRequestHandler());
         requestHandlers.add(new DbExportImportRH());
+        requestHandlers.add(new AnalyzeUT1RequestHandler());
     }
 
     public static void manageRequest(HttpServletRequest req, HttpServletResponse resp, ServletContext ctx) {

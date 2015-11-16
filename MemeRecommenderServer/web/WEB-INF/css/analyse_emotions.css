@@ -1,0 +1,14 @@
+/* entypo */
+[class*="entypo-"]:before {
+    font-family: 'entypo', sans-serif;
+}
+
+canvas {
+    border: 1px solid black;
+    max-width: 500px;
+    max-height: 500px;
+}
+
+.load_file_input {
+	margin-bottom: 20px;
+}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Visualize Emotions</title>
+    <link rel="stylesheet" type="text/css" href="css/entypo.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="css/morris.css">
+    <link rel="stylesheet" type="text/css" href="css/analyse_emotions.css">
+	<script src="js/jquery.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Meme Reaction Visualization</h2>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <div class="row">
+                    <div class="col-md-12" id="append_canvas"></div>
+                </div>
+                <div class="row">
+                    <span id="canvas_progress"></span>
+                </div>
+                <div class="row canvas-controls hidden">
+                    <div class="col-md-12">
+                        <button id="play_controls_vid_back"><span class="entypo-left-open"></span></button>
+                        <button id="play_controls_vid_play"><span class="entypo-play"></span></button>
+                        <button id="play_controls_vid_pause"><span class="entypo-pause"></span></button>
+                        <button id="play_controls_vid_next"><span class="entypo-right-open"></span></button>
+                        <button id="play_controls_vid_restart"><span class="entypo-ccw"></span></button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7 inputs">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group load_file_input">
+                            <span class="input-group-addon">File:</span>
+                            <input type="text" class="form-control" id="input_filename" value="C:\users\jonbr\Desktop\utd\data_50.csv">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="button" id="load_file_button">Load</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="button" id="normalize_button">Normalize</button>
+                    </div>
+                </div>
+                <div class="row hidden" id="frame_data">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading"><h3 class="panel-title">Frame Data</h3></div>
+                            <table class="table" id="frame_data_table">
+                                
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="row hidden" id="meme_data">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading"><h3 class="panel-title">Meme Reaction Data</h3></div>
+                            <table class="table" id="meme_data_table">
+                                
+                            </table>
+                            <div class="panel-body">
+                                <h5 class="text-center">Smile Probability Graph</h5>
+                                <div id="smile_data_chart_wrapper">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="btn-group" id="select_reaction_to_memes">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/raphael.min.js"></script>
+    <script src="js/morris.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+	<script src="js/EmotionAnalysis.js"></script>
+    <script src="js/DrawFace.js"></script>
+    <script src="js/ReactionDataTables.js"></script>
+    <script src="js/NormalizeReactionData.js"></script>
+</body>
+</html>
