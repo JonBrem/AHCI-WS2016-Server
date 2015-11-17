@@ -1,3 +1,19 @@
+function normalizeData(reactionData) {
+    normalize = true;
+    normalizedFileContents = [];
+    for(var i = 0; i < reactionData.length; i++) {
+        var faceData = getCopy(reactionData[i]);
+        fixPosition(faceData);
+        fixEulerZRotation(faceData);
+        fixSize(faceData);
+
+        normalizedFileContents.push(faceData);
+    }    
+
+    if(memeNumbers.length > 0) {
+        showDataFor(memeNumbers[0]);
+    }
+}
 
 function fixScales(fileContents) {
     for(var i = 0; i < fileContents.length; i++) {
@@ -22,20 +38,6 @@ function fixScaledY(y) {
     return y / 2.25;
 }
 
-
-function normalizeData(reactionData) {
-    normalize = true;
-    normalizedFileContents = [];
-    for(var i = 0; i < reactionData.length; i++) {
-        var faceDate = getCopy(reactionData[i]);
-        fixEulerZRotation(faceDate);
-        fixPosition(faceDate);
-        fixSize(faceDate);
-
-        normalizedFileContents.push(faceDate);
-    }    
-}
-
 function fixPosition(faceData) {
     var canvasCenterX = canvas.width / 2;
     var canvasCenterY = canvas.height / 2;
@@ -51,8 +53,45 @@ function fixPosition(faceData) {
     }
 }
 
+// ! scales & everything needs to be fixed before this is called!!
+// @TODO REAAALLY CHECK IF THIS IS ALL FINE!!
 function fixSize(faceData) {
-    
+    var faceCenterX = faceData.faceX + faceData.faceWidth / 2;
+    var faceCenterY = faceData.faceY + faceData.faceWidth / 2;
+
+    var faceWidthBefore = faceData.faceWidth;
+    var faceHeightBefore = faceData.faceHeight;
+
+    for(var i = 0; i < positionKeys.length; i++) {
+        if(positionKeys[i] == "face") continue;
+        if(faceData[positionKeys[i] + "X"] == "NA") continue;        
+
+        var oldX = faceData[positionKeys[i] + "X"];
+        var oldY = faceData[positionKeys[i] + "Y"];
+
+        var xDiff = oldX - faceCenterX;
+        var yDiff = oldY - faceCenterY;
+
+        var stretchX;
+        if(xDiff > 0) { // point right of face's center
+            stretchX = xDiff * (canvas.width / faceWidthBefore);
+        } else { // point left of face's center
+            stretchX = xDiff * (canvas.width / faceWidthBefore);
+        }
+        faceData[positionKeys[i] + "X"] = faceCenterX + stretchX;
+
+        var stretchY;
+        if(yDiff > 0) { // point below face's center
+            stretchY = yDiff * (canvas.height / faceHeightBefore);
+        } else { // point above face's center
+            stretchY = yDiff * (canvas.height / faceHeightBefore);
+        }
+        faceData[positionKeys[i] + "Y"] = faceCenterY + stretchY;
+    }
+    faceData.faceWidth = canvas.width;
+    faceData.faceHeight = canvas.height;
+    faceData.faceX = 0;
+    faceData.faceY = 0;
 }
 
 function getCopy(faceData) {
@@ -65,6 +104,7 @@ function getCopy(faceData) {
     return other;
 }
 
+// scales should be fixed before this is called, otherwise the landmarks are at the wrong position relative to the center of the face.
 function fixEulerZRotation(faceData) {
     var faceX = faceData.faceX;
     var faceY = faceData.faceY;
@@ -75,7 +115,7 @@ function fixEulerZRotation(faceData) {
 
             var newPoint = rotateAround(faceData[fixRotations[i] + "X"],
                                         faceData[fixRotations[i] + "Y"],
-                                        faceX, faceY, -1 * angle);
+                                        faceX, faceY, angle);
             faceData[fixRotations[i] + "X"] = newPoint.x;
             faceData[fixRotations[i] + "Y"] = newPoint.y;
         }

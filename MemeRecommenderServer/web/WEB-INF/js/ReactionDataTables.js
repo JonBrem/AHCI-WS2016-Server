@@ -1,3 +1,5 @@
+var morrisLine;
+
 function showMemeData(currentlySelectedMemeData) {
     var dataTimeSpan = currentlySelectedMemeData[currentlySelectedMemeData.length - 1].timeStamp - currentlySelectedMemeData[0].timeStamp;
     var dataLength = currentlySelectedMemeData.length;
@@ -15,6 +17,10 @@ function showMemeData(currentlySelectedMemeData) {
     }
     var selectedEmotion = currentlySelectedMemeData[0].selectedEmotion;
 
+    $("#frame_slider").attr("max", currentlySelectedMemeData.length - 1);
+    $("#frame_slider").val(0);
+    $("#frame_slider").unbind("change mousemove");
+    setTimeout(function() {$("#frame_slider").on("change mousemove", onSliderChange);}, 200);
 
     $("#meme_data_table").empty();
 
@@ -29,7 +35,7 @@ function showMemeData(currentlySelectedMemeData) {
 
     setTimeout(
         function() {
-            new Morris.Line({
+            morrisLine = new Morris.Line({
               // ID of the element in which to draw the chart.
               element: 'smile_data_chart',
               // Chart data records -- each entry in this array corresponds to a point on
@@ -60,4 +66,27 @@ function showFrameData(currentMemeDataIndex) {
     $("#frame_data_table").append('<tr><th>Left Eye Open</th><td>' + currentlySelectedMemeData[currentMemeDataIndex].leftEyeOpen + '</td></tr>');
     $("#frame_data_table").append('<tr><th>Right Eye Open</th><td>' + currentlySelectedMemeData[currentMemeDataIndex].rightEyeOpen + '</td></tr>');
     $("#frame_data_table").append('<tr><th>timestamp</th><td>' + currentlySelectedMemeData[currentMemeDataIndex].timeStamp + '</td></tr>');
+
+    if(morrisLine != undefined) {
+      var elementWidth = morrisLine.elementWidth;
+      var graphLeft = morrisLine.xStart;
+
+      var currentHighlightX = graphLeft + currentMemeDataIndex * morrisLine.dx;
+      var ratioOfWidth = currentHighlightX / elementWidth;
+
+      var percentage = ratioOfWidth * 100;
+      $("#smile_data_chart_wrapper").css("background", "linear-gradient(to right, white " + 
+        (percentage - 0.6) + "%, #cc99cc " + 
+        (percentage + 0.0) + "%, white " +  
+        (percentage + 0.6) + "%)");
+    }
+
+    $("#frame_slider").val(currentMemeDataIndex);
+}
+
+function onSliderChange(e) {
+    currentMemeDataIndex = $("#frame_slider").val();
+    clearCanvas();
+    showFace(currentMemeDataIndex);
+    showFrameData(currentMemeDataIndex);
 }
