@@ -1,9 +1,14 @@
 package util;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
+
 /**
  * Created by jonbr on 27.10.2015.
  */
 public class Const {
+
+    public static PrintStream out = System.out;
 
     public static final int LEVEL_ERROR = 0;
     public static final int LEVEL_WARN = 1;
@@ -21,7 +26,43 @@ public class Const {
 
     public static void log(int level, String content) {
         if(LEVELS_ACTIVE[level]) {
-            System.out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t\t" + content);
+        }
+    }
+
+    public static void log(int level, int content) {
+        if(LEVELS_ACTIVE[level]) {
+            out.println(LEVEL_CODES[level] + "\t\t" + content);
+        }
+    }
+
+    public static void log(int level, float content) {
+        if(LEVELS_ACTIVE[level]) {
+            out.println(LEVEL_CODES[level] + "\t\t" + content);
+        }
+    }
+
+    public static void log(int level, long content) {
+        if(LEVELS_ACTIVE[level]) {
+            out.println(LEVEL_CODES[level] + "\t\t" + content);
+        }
+    }
+
+    public static void log(int level, double content) {
+        if(LEVELS_ACTIVE[level]) {
+            out.println(LEVEL_CODES[level] + "\t\t" + content);
+        }
+    }
+
+    public static void log(int level, byte content) {
+        if(LEVELS_ACTIVE[level]) {
+            out.println(LEVEL_CODES[level] + "\t\t" + content);
+        }
+    }
+
+    public static void log(int level, char content) {
+        if(LEVELS_ACTIVE[level]) {
+            out.println(LEVEL_CODES[level] + "\t\t" + content);
         }
     }
 
