@@ -1,4 +1,4 @@
-package de.ur.ahci.machine_learning.five_point_summaries;
+package de.ur.ahci.machine_learning.simple_predictions;
 
 import de.ur.ahci.machine_learning.MemeReactionData;
 import de.ur.ahci.machine_learning.TestData;

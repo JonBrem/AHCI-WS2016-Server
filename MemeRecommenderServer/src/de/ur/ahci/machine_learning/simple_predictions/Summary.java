@@ -1,4 +1,4 @@
-package de.ur.ahci.machine_learning.five_point_summaries;
+package de.ur.ahci.machine_learning.simple_predictions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +32,27 @@ public class Summary<E> {
     }
 
     public E getValueAt(Comparator<E> comparator, float step) {
+        Collections.sort(items, comparator);
+        int index = (int) Math.floor(step * items.size());
+        if(index >= items.size()) index = items.size() - 1;
+        if(items.size() == 0) return null;
+        return items.get(index);
+    }
+
+    public E getValueAt(float step) throws Exception {
+        Comparator<E> comparator = null;
+        if(items.get(0) instanceof Comparable) {
+            comparator = new Comparator<E>() {
+                @Override
+                public int compare(E o1, E o2) {
+                    return ((Comparable) o1).compareTo((Comparable) o2);
+                }
+            };
+        } else {
+            throw new Exception("Generic argument needs to implement Comparable for this to work without specifying a Comparator!");
+        }
+
+        Collections.sort(items, comparator);
         int index = (int) Math.floor(step * items.size());
         if(index >= items.size()) index = items.size() - 1;
         return items.get(index);
