@@ -32,7 +32,7 @@ public class DatabaseContextListener implements ServletContextListener {
         return instance;
     }
 
-    public void openConnection()  {
+    private void openConnection()  {
         try {
             Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
             conn = DriverManager.getConnection(dbURL);
@@ -140,15 +140,26 @@ public class DatabaseContextListener implements ServletContextListener {
         }
     }
 
-    public void executeUpdate(String sql) {
+    public int executeUpdate(String sql) {
         Statement statement = null;
         try {
             statement = conn.createStatement();
-            statement.executeUpdate(sql);
+            return statement.executeUpdate(sql);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return -1;
+    }
 
+    public ResultSet executeInsert(String sql) {
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+            return statement.getGeneratedKeys();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public ResultSet query(String sql) {
