@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 
 public class AppRequestHandler extends RequestHandler {
@@ -25,7 +26,8 @@ public class AppRequestHandler extends RequestHandler {
         if(!(uri.startsWith("load_images") || uri.startsWith("request_id"))) return false;
 
         if (uri.startsWith("load_images")) {
-            out.write(getRecommendedImages(1 /* @TODO read user id from a param */));
+            applyRatings(req.getParameterMap());
+            out.write(getRecommendedImages(req.getParameterMap()));
         } else if (uri.startsWith("request_id")) {
             respondToUserIdRequest(out);
         } else {
@@ -38,6 +40,40 @@ public class AppRequestHandler extends RequestHandler {
         return true;
     }
 
+    /**
+     * Stores the ratings in the request in the database.
+     * @param parameterMap
+     * <br>Must contain <strong>ratings</strong> as a key for this to have some effect.
+     * Ratings must be in the following format:<br>
+     * <i>ImageId1:Rating1,ImageId2:Rating2,ImageId3:Rating3...</i><br>
+     * Must also contain the <strong>user_id</strong>.
+     */
+    private void applyRatings(Map<String, String[]> parameterMap) {
+        if(!parameterMap.containsKey("ratings")) return;
+        int userId = Integer.parseInt(parameterMap.get("user_id")[0]);
+        String ratingsString = parameterMap.get("ratings")[0];
+        storeRatings(userId, ratingsString);
+    }
+
+    private void storeRatings(int userId, String ratingsString) {
+        StringBuilder sql = new StringBuilder().append("INSERT INTO ratings (user_id,meme_id,rating) VALUES ");
+
+        String[] ratings = ratingsString.split(",");
+        for(int i = 0; i < ratings.length; i++) {
+            String[] rating = ratings[i].split(":");
+            int memeId = Integer.parseInt(rating[0]);
+            int value = Integer.parseInt(rating[1]);
+
+            sql.append("(").append(userId).append(",").append(memeId).append(",").append(value).append(")");
+            if(i != ratings.length - 1) {
+                sql.append(",");
+            }
+        }
+
+        DatabaseContextListener db = DatabaseContextListener.getInstance();
+        db.executeUpdate(sql.toString());
+    }
+
     private void respondToUserIdRequest(PrintWriter out) {
         int id = createNewUserId();
         if(id != -1) {
@@ -47,6 +83,12 @@ public class AppRequestHandler extends RequestHandler {
         }
     }
 
+    /**
+     * @return
+     * a new & unique user ID.
+     * <br>
+     * -1 if there was an error.
+     */
     private int createNewUserId() {
         DatabaseContextListener db = DatabaseContextListener.getInstance();
         ResultSet results = db.executeInsert("INSERT INTO users (id) VALUES (DEFAULT)");
@@ -63,30 +105,26 @@ public class AppRequestHandler extends RequestHandler {
         return -1;
     }
 
-    /*
-        http://9gag.com/gag/aZNoBBp?sc=cute	http://img-9gag-fun.9cache.com/photo/aZNoBBp_700b.jpg	[cute,9gag]	Ew human.
-        http://9gag.com/gag/aNK8ZqK?sc=cute	http://img-9gag-fun.9cache.com/photo/aNK8ZqK_700b.jpg	[cute,9gag]	After one week away, this is her happy face of seeing me.
-        http://9gag.com/gag/adprLxd?sc=cute	http://img-9gag-fun.9cache.com/photo/adprLxd_700b.jpg	[cute,9gag]	Sad kitty is sad.
-        http://9gag.com/gag/abbKM8E?sc=cute	http://img-9gag-fun.9cache.com/photo/abbKM8E_700b.jpg	[cute,9gag]	Morag's unique ginger and black coat
-        http://9gag.com/gag/aQnBqWq?sc=cute	http://img-9gag-fun.9cache.com/photo/aQnBqWq_700b.jpg	[cute,9gag]	My Lion King
-
-        http://9gag.com/gag/aDmrxgx?sc=cute	http://img-9gag-fun.9cache.com/photo/aDmrxgx_700b.jpg	[cute,9gag]	Easy, breezy, beautiful, cover squirrel
-        http://9gag.com/gag/aepy00b?sc=cute	http://img-9gag-fun.9cache.com/photo/aepy00b_700b_v1.jpg	[cute,9gag]	This is my beauty from Namibia
-        http://9gag.com/gag/a8jQM8e?sc=cute	http://img-9gag-fun.9cache.com/photo/a8jQM8e_700b.jpg	[cute,9gag]	She is almost 10 years old but still has a baby face
-        http://9gag.com/gag/aYwZK40?sc=cute	http://img-9gag-fun.9cache.com/photo/aYwZK40_700b.jpg	[cute,9gag]	My best friend for life!
-        http://9gag.com/gag/avL4n4d?sc=cute	http://img-9gag-fun.9cache.com/photo/avL4n4d_700b.jpg	[cute,9gag]	Wanted to share my beautiful old lady with you.
-
-     */
-
     /**
-     * @TODO really implement this!!
-     * @param userId
-     * The ID of the user that will get the recommendation
+     * @param params
+     * Must contain the ID of the user that will get the recommendation with param <strong>user_id</strong>
+     * <br>
+     * Possible param: <strong>how_many</strong> (as in "how many images should be recommended"),
+     * defaults to 2
      * @return
      * JSON string of memes that the user will see next.
+     * {} if there is no user_id param.
      */
-    private String getRecommendedImages(int userId) {
-        Meme[] memes = new MemeRecommender().recommend(userId);
+    private String getRecommendedImages(Map<String, String[]> params) {
+        if(!params.containsKey("user_id")) return "{}";
+        int userId = Integer.parseInt(params.get("user_id")[0]);
+
+        int howManyMemes = 2;
+        if(params.containsKey("how_many")) {
+            howManyMemes = Integer.parseInt(params.get("how_many")[0]);
+        }
+
+        Meme[] memes = new MemeRecommender().recommend(userId, howManyMemes);
 
 
         StringBuilder builder = new StringBuilder();

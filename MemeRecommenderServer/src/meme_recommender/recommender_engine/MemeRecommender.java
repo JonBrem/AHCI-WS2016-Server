@@ -12,10 +12,11 @@ public class MemeRecommender {
      *
      * @param userId
      * id of the user that gets the recommendation
+     * @param howManyMemes
      * @return
      * Array of recommended Memes
      */
-    public Meme[] recommend(int userId) {
+    public Meme[] recommend(int userId, int howManyMemes) {
         Meme m1 = new Meme();
         m1.addTag("cute");
         m1.setImgUrl("meow");
