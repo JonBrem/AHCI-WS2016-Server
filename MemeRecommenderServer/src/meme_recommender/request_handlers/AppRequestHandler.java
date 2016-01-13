@@ -124,7 +124,7 @@ public class AppRequestHandler extends RequestHandler {
             howManyMemes = Integer.parseInt(params.get("how_many")[0]);
         }
 
-        Meme[] memes = new MemeRecommender().recommend(userId, howManyMemes);
+        Meme[] memes = new MemeRecommender(new DatabaseContextListener()).recommend(userId, howManyMemes);
 
 
         StringBuilder builder = new StringBuilder();
@@ -133,6 +133,7 @@ public class AppRequestHandler extends RequestHandler {
         builder.append("\timages: [\n");
 
         for(int i = 0; i < memes.length; i++) {
+            if(memes[i] == null) continue;
 
             builder.append("\t\t{\n");
 
