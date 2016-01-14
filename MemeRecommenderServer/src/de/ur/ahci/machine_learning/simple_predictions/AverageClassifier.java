@@ -34,45 +34,4 @@ public class AverageClassifier implements Classifier {
         return avg / SummaryClassifier.getSmileMeasureCount(data);
     }
 
-    @Override
-    public Set<String> getParameters() {
-        Set<String> params = new HashSet<>();
-        params.add("threshold");
-        return params;
-    }
-
-    @Override
-    public void setParameter(String name, Object value) {
-        threshold = (Float) value;
-    }
-
-    @Override
-    public String getMorrisXKey() {
-        return "value";
-    }
-
-    @Override
-    public List<String> getMorrisYKeys() {
-        return Arrays.asList("laughter", "no_laughter");
-    }
-
-    @Override
-    public List<String> getAllMorrisXKeys() {
-        return Arrays.asList("-1.0", "0.0", "0.05", "0.1", "0.15", "0.2", "0.25", "0.3", "0.35", "0.4", "0.45", "0.5",
-                "0.55", "0.6", "0.65", "0.7", "0.75", "0.8", "0.85", "0.9", "0.95", "1.0");
-    }
-
-    @Override
-    public String getMorrisYKeyFor(MemeReactionData data) {
-        return (data.getSelectedEmotion() > 1)? "laughter" : "no_laughter";
-    }
-
-    @Override
-    public String getMorrisXKeyFor(MemeReactionData data) {
-        if(SummaryClassifier.getSmileMeasureCount(data) == 0) return "0.0";
-        float avg = average(data);
-
-        avg = Math.round(avg * 100 - avg * 100 % 5) / (float) 100;
-        return String.valueOf(avg);
-    }
 }

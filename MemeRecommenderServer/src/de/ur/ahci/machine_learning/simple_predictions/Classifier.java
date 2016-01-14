@@ -11,13 +11,5 @@ import java.util.Set;
 public interface Classifier {
 
     int predict(MemeReactionData data);
-    Set<String> getParameters();
-    void setParameter(String name, Object value);
 
-    String getMorrisXKey();
-    List<String> getMorrisYKeys();
-    List<String> getAllMorrisXKeys();
-
-    String getMorrisYKeyFor(MemeReactionData data);
-    String getMorrisXKeyFor(MemeReactionData data);
 }

@@ -21,15 +21,6 @@ public class AnalyzeUT1RequestHandler extends RequestHandler{
 
     private static final String[] keys = {"user","img","smiling","leftEyeX","leftEyeY","leftEyeOpen","rightEyeX","rightEyeY","rightEyeOpen","leftMouthX","leftMouthY","rightMouthX","rightMouthY","leftCheekX","leftCheekY","rightCheekX","rightCheekY","noseBaseX","noseBaseY","bottomMouthX","bottomMouthY","faceX","faceY","faceId","eulerY","eulerZ","faceWidth","faceHeight","selectedEmotion","timeStamp"};
 
-    private static Map<String, Classifier> classifiersMap;
-    private MorrisGraphHandler morrisGraphHandler;
-
-    static {
-        classifiersMap = new HashMap<>();
-        classifiersMap.put("summary", new SummaryClassifier());
-        classifiersMap.put("average", new AverageClassifier());
-        classifiersMap.put("mouthsize", new MouthSizeClassifier());
-    }
 
     @Override
     public boolean handleRequest(HttpServletRequest req, HttpServletResponse resp, ServletContext ctx, Cookie[] cookies, PrintWriter out) {
@@ -45,110 +36,11 @@ public class AnalyzeUT1RequestHandler extends RequestHandler{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if(url.substring("analyze_meme_reaction/".length()).startsWith("load_classifiers")) {
-            try {
-                writeClassifiersToClient(resp.getWriter());
-            } catch(IOException e) {
-                e.printStackTrace();
-            }
-        } else if(url.substring("analyze_meme_reaction/".length()).startsWith("run_tests")) {
-            try {
-                morrisGraphHandler = new MorrisGraphHandler();
-                TestResults results = runTests(req.getParameterMap());
-                writeResultsToClient(results, morrisGraphHandler, resp.getWriter(), req.getParameterMap());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
         return true;
     }
 
-    private void writeResultsToClient(TestResults results, MorrisGraphHandler morrisGraphHandler, PrintWriter writer, Map<String, String[]> parameterMap) {
-        String[] classifierNames = parameterMap.get("classifiers")[0].split(",");
-
-        writer.write("[\n");
-
-        for(int i = 0; i < classifierNames.length; i++) {
-            writer.write("\t{\n");
-            writer.write("\t\t\"name\": \"" + classifierNames[i] + "\",\n");
-            String graph = morrisGraphHandler.getMorrisGraph(classifierNames[i]);
-            if(graph != null) {
-                writer.write("\t\t\"graph\": ");
-                writer.write(graph);
-                writer.write(",\n");
-            }
-            writer.write(jsonifyClassifierResults(results.getResultsForClassifier(classifierNames[i]), 2));
-            writer.write("\t}");
-            if(i != classifierNames.length - 1) writer.write(",");
-            writer.write("\n");
-        }
-
-        writer.write("]");
-        writer.flush();
-    }
-
-    private TestResults runTests(Map<String, String[]> parameterMap) {
-        TestResults results = new TestResults();
-
-        String[] classifierNames = parameterMap.get("classifiers")[0].split(",");
-
-        Map<String, Classifier> classifiers = new HashMap<>();
-
-        for(int i = 0; i < classifierNames.length; i++) {
-            Classifier classifier = classifiersMap.get(classifierNames[i]);
-            for(String paramName : classifier.getParameters()) {
-                classifier.setParameter(paramName, Float.parseFloat(parameterMap.get(classifierNames[i] + "_" + paramName)[0]));
-            }
-
-            morrisGraphHandler.initGraph(classifierNames[i], classifier.getMorrisXKey(), classifier.getMorrisYKeys(), classifier.getAllMorrisXKeys());
-            classifiers.put(classifierNames[i], classifier);
-        }
-
-        TestDataStream testDataStream = new TestDataStream("C:/users/jonbr/Desktop/utd");
-        TestDataStreamReader testDataStreamReader = new TestDataStreamReader(testDataStream);
-        testDataStreamReader.forEveryTestData(testData -> this.handleTestData(testData, classifiers, results, testData.getUserId()));
-
-        return results;
-    }
-
-    private void handleTestData(TestData testData, Map<String, Classifier> classifiers, TestResults results, int userId) {
-        testData.forEveryMemeReactionData(memeReactionData -> this.handleMemeReactionData(memeReactionData, classifiers, results, userId));
-    }
-
-    private void handleMemeReactionData(MemeReactionData data, Map<String, Classifier> classifiers, TestResults results, int userId) {
-        for(String classifierName : classifiers.keySet()) {
-            Classifier classifier = classifiers.get(classifierName);
-            int prediction = classifier.predict(data);
-            morrisGraphHandler.increaseDataForGraph(classifierName, classifier.getMorrisXKeyFor(data), classifier.getMorrisYKeyFor(data));
-            if(data.getSelectedEmotion() <= 1) {
-                results.addPredictionForNegativeReaction(classifierName, prediction, userId+"", data.getImageNumber()+"");
-            } else if(data.getSelectedEmotion() > 1) {
-                results.addPredictionForPositiveReaction(classifierName, prediction, userId+"", data.getImageNumber()+"");
-            }
-        }
-    }
-
-    private void writeClassifiersToClient(PrintWriter writer) {
-        StringBuilder json = new StringBuilder();
-
-        json.append("[\n");
-        boolean atLeastOneClassifier = false;
-
-        for(String name : classifiersMap.keySet()) {
-            atLeastOneClassifier = true;
-            json.append(jsonifyClassifier(name, classifiersMap.get(name), 1)).append(",\n");
-        }
-
-        if(atLeastOneClassifier) {
-            json.delete(json.length() - 2, json.length() - 1);
-        }
-
-        json.append("]");
-
-        writer.write(json.toString());
-        writer.flush();
-    }
 
     public void writeDataToClient(String file, PrintWriter out) {
         FileUtility fileUtility = new FileUtility();
@@ -200,31 +92,6 @@ public class AnalyzeUT1RequestHandler extends RequestHandler{
         if(appendComma) {
             json.append(",");
         }
-        return json.toString();
-    }
-
-    private String jsonifyClassifier(String name, Classifier classifier, int tabs) {
-        StringBuilder json = new StringBuilder();
-
-        String defaultTabs = "";
-        for(int i = 0; i < tabs; i++) defaultTabs += "\t";
-
-        json.append(defaultTabs).append("{\n");
-        json.append(defaultTabs).append("\t").append("\"name\":\"").append(name).append("\",\n");
-        json.append(defaultTabs).append("\t").append("\"params\":").append("[\n");
-
-        boolean atLeastOneParam = false;
-        for(String paramName : classifier.getParameters()) {
-            atLeastOneParam = true;
-            json.append(defaultTabs).append("\t\t\"").append(paramName).append("\",\n");
-        }
-
-        if(atLeastOneParam) json.deleteCharAt(json.length() - 2);
-
-
-        json.append(defaultTabs).append("\t").append("]\n");
-        json.append(defaultTabs).append("}");
-
         return json.toString();
     }
 
