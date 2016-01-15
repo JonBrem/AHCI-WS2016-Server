@@ -26,8 +26,16 @@ public class AppRequestHandler extends RequestHandler {
         if(!(uri.startsWith("load_images") || uri.startsWith("request_id"))) return false;
 
         if (uri.startsWith("load_images")) {
-            applyRatings(req.getParameterMap());
+            out.write("{\n");
+            String ratings = applyRatings(req.getParameterMap());
+
+            if(ratings != null && ratings.length() > 0) {
+                out.write(ratings);
+                out.write(",\n");
+            }
+
             out.write(getRecommendedImages(req.getParameterMap()));
+            out.write("}\n");
         } else if (uri.startsWith("request_id")) {
             respondToUserIdRequest(out);
         } else {
@@ -48,21 +56,33 @@ public class AppRequestHandler extends RequestHandler {
      * <i>ImageId1:Rating1,ImageId2:Rating2,ImageId3:Rating3...</i><br>
      * Must also contain the <strong>user_id</strong>.
      */
-    private void applyRatings(Map<String, String[]> parameterMap) {
-        if(!parameterMap.containsKey("ratings")) return;
+    private String applyRatings(Map<String, String[]> parameterMap) {
+        if(!parameterMap.containsKey("ratings")) return null;
         int userId = Integer.parseInt(parameterMap.get("user_id")[0]);
         String ratingsString = parameterMap.get("ratings")[0];
-        storeRatings(userId, ratingsString);
+
+        int[] ratingIDs = storeRatings(userId, ratingsString);
+
+        StringBuilder ratingIDString = new StringBuilder("\t\"rated_meme_ids\": [");
+        for(int i = 0; i < ratingIDs.length; i++) {
+            ratingIDString.append(ratingIDs[i]);
+            if(i != ratingIDs.length - 1) ratingIDString.append(",");
+        }
+        ratingIDString.append("]");
+
+        return ratingIDString.toString();
     }
 
-    private void storeRatings(int userId, String ratingsString) {
+    private int[] storeRatings(int userId, String ratingsString) {
         StringBuilder sql = new StringBuilder().append("INSERT INTO ratings (user_id,meme_id,rating) VALUES ");
 
         String[] ratings = ratingsString.split(",");
+        int[] ratingIDs = new int[ratings.length];
         for(int i = 0; i < ratings.length; i++) {
             String[] rating = ratings[i].split(":");
             int memeId = Integer.parseInt(rating[0]);
             int value = Integer.parseInt(rating[1]);
+            ratingIDs[i] = memeId;
 
             sql.append("(").append(userId).append(",").append(memeId).append(",").append(value).append(")");
             if(i != ratings.length - 1) {
@@ -72,6 +92,7 @@ public class AppRequestHandler extends RequestHandler {
 
         DatabaseContextListener db = DatabaseContextListener.getInstance();
         db.executeUpdate(sql.toString());
+        return ratingIDs;
     }
 
     private void respondToUserIdRequest(PrintWriter out) {
@@ -128,7 +149,6 @@ public class AppRequestHandler extends RequestHandler {
 
 
         StringBuilder builder = new StringBuilder();
-        builder.append("{\n");
 
         builder.append("\timages: [\n");
 
@@ -137,9 +157,8 @@ public class AppRequestHandler extends RequestHandler {
 
             builder.append("\t\t{\n");
 
-            builder.append("\t\t\tid: ").append(i).append(",\n");
-            builder.append("\t\t\turl: \"").append(memes[i].getUrl()).append("\",\n");
-            builder.append("\t\t\ttitle: \"").append(memes[i].getTitle()).append("\"\n");
+            builder.append("\t\t\tid: ").append(memes[i].getId()).append(",\n");
+            builder.append("\t\t\turl: \"").append(memes[i].getUrl()).append("\"\n");
 
             builder.append("\t\t}");
             if(i != memes.length - 1) {
@@ -149,7 +168,6 @@ public class AppRequestHandler extends RequestHandler {
         }
 
         builder.append("\t]\n");
-        builder.append("}\n");
         return builder.toString();
     }
 

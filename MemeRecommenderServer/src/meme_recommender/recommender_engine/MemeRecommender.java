@@ -56,6 +56,7 @@ public class MemeRecommender {
     private Meme[] showRandomMemesForUserPreferences(int howManyMemes, UserPreferences userPreferences) {
         Meme[] memes = new Meme[1];
         Meme m = new Meme();
+        m.setId(-1);
         m.setTitle("Meow");
         m.setUrl("http://www.google.com");
         m.setImgUrl("http://nota.realurl.de");
@@ -66,6 +67,7 @@ public class MemeRecommender {
     private Meme[] showMemesSimilarUsersLiked(int howManyMemes, List<User> similarUsers) {
         Meme[] memes = new Meme[1];
         Meme m = new Meme();
+        m.setId(-1);
         m.setTitle("Meow");
         m.setUrl("http://www.google.com");
         m.setImgUrl("http://nota.realurl.de");
@@ -76,6 +78,7 @@ public class MemeRecommender {
     private Meme[] showMemesForUserPreferences(int howManyMemes, UserPreferences userPreferences) {
         Meme[] memes = new Meme[1];
         Meme m = new Meme();
+        m.setId(-1);
         m.setTitle("Meow");
         m.setUrl("http://www.google.com");
         m.setImgUrl("http://nota.realurl.de");
@@ -86,6 +89,7 @@ public class MemeRecommender {
     private Meme[] showMemesWithPositiveRatingsLooselyMatchingUser(int howManyMemes, UserPreferences userPreferences) {
         Meme[] memes = new Meme[1];
         Meme m = new Meme();
+        m.setId(-1);
         m.setTitle("Meow");
         m.setUrl("http://www.google.com");
         m.setImgUrl("http://nota.realurl.de");
@@ -100,12 +104,16 @@ public class MemeRecommender {
         Collections.reverse(memesUserHasRated);
 
         String notInString = getListUserHasRatedAsString(memesUserHasRated);
-        if(notInString.length() > 0) sql.append( "WHERE id NOT IN " ).append(notInString);
+        if(notInString.length() > 0) sql.append( " WHERE id NOT IN " ).append(notInString);
 
         sql.append(" ORDER BY RANDOM() OFFSET 0 ROWS) AS tmp1) AS tmp2")
             .append(" WHERE rownum<=").append(howManyMemes);
 
         ResultSet results = db.query(sql.toString());
+        return getMemesFromResultSet(howManyMemes, results);
+    }
+
+    private Meme[] getMemesFromResultSet(int howManyMemes, ResultSet results) {
         Meme[] memes = new Meme[howManyMemes];
 
         for(int i = 0; i < memes.length; i++) {
@@ -115,6 +123,7 @@ public class MemeRecommender {
                     m.setImgUrl(results.getString(results.findColumn("img_url")));
                     m.setTitle(results.getString(results.findColumn("title")));
                     m.setUrl(results.getString(results.findColumn("url")));
+                    m.setId(results.getInt(results.findColumn("id")));
                     memes[i] = m;
                 } else break;
             } catch (SQLException e) {

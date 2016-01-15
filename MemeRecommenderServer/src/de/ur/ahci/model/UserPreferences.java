@@ -30,9 +30,9 @@ public class UserPreferences {
 
     private void buildPreferences(ResultSet userRatings) throws SQLException {
         while(userRatings.next()) {
-            int memeId = userRatings.getInt(0);
-            int tagId = userRatings.getInt(1);
-            int rating = userRatings.getInt(2);
+            int memeId = userRatings.getInt(1);
+            int tagId = userRatings.getInt(2);
+            int rating = userRatings.getInt(3);
 
             memesUserHasRated.add(memeId);
             storeRating(tagId, rating);

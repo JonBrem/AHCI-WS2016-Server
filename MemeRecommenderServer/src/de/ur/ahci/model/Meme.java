@@ -24,6 +24,7 @@ public class Meme {
     private String url;
     private List<String> tags;
     private String imgUrl;
+    private int id;
 
     public Meme() {
         tags = new ArrayList<>();
@@ -61,6 +62,14 @@ public class Meme {
         this.imgUrl = imgUrl;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
     @Override
     public String toString() {
         String tagsString = "[";
@@ -77,7 +86,7 @@ public class Meme {
      * Inserts the meme into the database.
      * Returns the meme's id.
      * @param db
-     * @return
+     * @return The meme's id
      */
     public int insert(DatabaseContextListener db) {
         StringBuilder builder = new StringBuilder();
@@ -102,5 +111,4 @@ public class Meme {
             return -1;
         }
     }
-
 }
