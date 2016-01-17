@@ -33,6 +33,7 @@ function LoadImages(tagCon) {
 	priv.onMemeLoaded = function(e) {
 		try {
 			e = JSON.parse(e);
+			console.log(e);
 			$(".tag_checkbox").prop("checked", false);
 
 			if(e.status && e.status=="no memes found") return;
@@ -45,8 +46,8 @@ function LoadImages(tagCon) {
 				priv.setActiveTags(e.tags);
 			}
 		} catch(exception) {
-			$("#meme_id_input").val(parseInt($("#meme_id_input").val()) - 2);
-			publ.loadNextImage();
+			// $("#meme_id_input").val(parseInt($("#meme_id_input").val()) - 2);
+			// publ.loadNextImage();
 		}
 	};
 
@@ -71,7 +72,7 @@ function LoadImages(tagCon) {
 	publ.loadSpecificImage = function() {
 		$.ajax({
 			url: '/inspect_db/load_meme',
-			data: {currentId : parseInt($("#meme_id_input").val()) + 1, dir: "down"},
+			data: {currentId : $("#meme_id_input").val()},
 			success: priv.onMemeLoaded,
 			error: priv.onMemeLoaded
 		});
