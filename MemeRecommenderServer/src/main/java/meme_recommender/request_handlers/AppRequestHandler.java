@@ -1,6 +1,7 @@
 package meme_recommender.request_handlers;
 
 import de.ur.ahci.model.Meme;
+import de.ur.ahci.model.UserPreferences;
 import meme_recommender.ElasticSearchContextListener;
 import meme_recommender.RequestHandler;
 import meme_recommender.recommender_engine.MemeRecommender;
@@ -80,7 +81,7 @@ public class AppRequestHandler extends RequestHandler {
         ElasticSearchContextListener es = ElasticSearchContextListener.getInstace();
 
         String[] ratings = ratingsString.split(",");
-        List<String> ratingIDs = new ArrayList<String>();
+        List<String> ratedMemeIDs = new ArrayList<String>();
         for(int i = 0; i < ratings.length; i++) {
             Map<String, Object> data = new HashMap<>();
             String[] rating = ratings[i].split(":");
@@ -88,16 +89,24 @@ public class AppRequestHandler extends RequestHandler {
             data.put("user_id", userId);
             data.put("meme_id", rating[0]);
             data.put("value", rating[1]);
+            data.put("rating_time", System.currentTimeMillis());
 
             try {
                 ActionFuture<IndexResponse> response = es.indexRequest("ratings", data);
                 String ratingId = response.actionGet().getId(); // just call any method to trigger exception if there was a problem.
-                ratingIDs.add(rating[0]);
+                ratedMemeIDs.add(rating[0]);
             } catch (Exception e) {
                 // meme ID not being returned is the error
             }
         }
-        return (String[]) ratingIDs.toArray();
+
+        new Thread(() -> {
+            new UserPreferences().build(userId, ElasticSearchContextListener.getInstace());
+        }).start();
+
+        String[] ratedMemeIDsArr = new String[ratedMemeIDs.size()];
+        for(int i = 0; i < ratedMemeIDs.size(); i++) ratedMemeIDsArr[i] = ratedMemeIDs.get(i);
+        return ratedMemeIDsArr;
     }
 
     private void respondToUserIdRequest(PrintWriter out) {

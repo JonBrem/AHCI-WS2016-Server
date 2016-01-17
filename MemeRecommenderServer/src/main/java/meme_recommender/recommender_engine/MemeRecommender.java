@@ -4,13 +4,16 @@ import de.ur.ahci.model.Meme;
 import de.ur.ahci.model.User;
 import de.ur.ahci.model.UserPreferences;
 import meme_recommender.ElasticSearchContextListener;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class MemeRecommender {
 
@@ -29,12 +32,12 @@ public class MemeRecommender {
      */
     public Meme[] recommend(String userId, int howManyMemes) {
         UserPreferences userPreferences = getUserPreferences(userId);
+        List<String> memesUserHasRated = User.getListOfMemeIDsUserHasRated(userId, es);
 
-        return null;
 
 //        if(userHasFewRatings(userPreferences)) {
 //            if(fewRatingsInGeneral()) {
-//                return showRandomMemes(howManyMemes, userPreferences);
+                return showRandomMemes(howManyMemes, memesUserHasRated);
 //            } else {
 //                return showMemesWithPositiveRatingsLooselyMatchingUser(howManyMemes, userPreferences);
 //            }
@@ -54,58 +57,34 @@ public class MemeRecommender {
 //        }
     }
 
-//    private Meme[] showRandomMemes(int howManyMemes, UserPreferences userPreferences) {
-//        StringBuilder sql = new StringBuilder().append("SELECT tmp2.* FROM (SELECT ROW_NUMBER() OVER() as rownum, tmp1.* FROM (SELECT * FROM memes");
-//
-//        List<String> memesUserHasRated = userPreferences.getMemesUserHasRated();
-//        Collections.reverse(memesUserHasRated);
-//
-//        String notInString = getListUserHasRatedAsString(memesUserHasRated);
-//        if(notInString.length() > 0) sql.append( " WHERE id NOT IN " ).append(notInString);
-//
-//        sql.append(" ORDER BY RANDOM() OFFSET 0 ROWS) AS tmp1) AS tmp2")
-//            .append(" WHERE rownum<=").append(howManyMemes);
-//
-//        ResultSet results = db.query(sql.toString());
-//        return getMemesFromResultSet(howManyMemes, results);
-//    }
-//
-//    private Meme[] getMemesFromResultSet(int howManyMemes, ResultSet results) {
-//        Meme[] memes = new Meme[howManyMemes];
-//
-//        for(int i = 0; i < memes.length; i++) {
-//            try {
-//                if(results.next()) {
-//                    Meme m = new Meme();
-//                    m.setImgUrl(results.getString(results.findColumn("img_url")));
-//                    m.setTitle(results.getString(results.findColumn("title")));
-//                    m.setUrl(results.getString(results.findColumn("url")));
-//                    m.setId(results.getString(results.findColumn("id")));
-//                    memes[i] = m;
-//                } else break;
-//            } catch (SQLException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        return memes;
-//    }
+    private Meme[] showRandomMemes(int howManyMemes, List<String> memesUserHasRated) {
+        QueryBuilder query = QueryBuilders.functionScoreQuery(QueryBuilders.matchAllQuery(),
+                ScoreFunctionBuilders.randomFunction(new Random().nextInt()));
+        QueryBuilder filter = QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("id", memesUserHasRated));
+        SearchResponse response = es.searchrequest("memes", query, filter, 0, howManyMemes).actionGet();
 
-    private String getListUserHasRatedAsString(List<Integer> memesUserHasRated) {
-        StringBuilder sql = new StringBuilder();
-        int max = memesUserHasRated.size();
-        max = max > 500? 500 : max;
-
-        if(max != 0) {
-            sql.append("(");
-            for(int i = 0; i < max; i++) {
-                sql.append(memesUserHasRated.get(i));
-                if(i != max - 1) sql.append(",");
-            }
-            sql.append(")");
-        }
-        return sql.toString();
+        return getMemesFromResultSet(howManyMemes, response);
     }
+
+    private Meme[] getMemesFromResultSet(int howManyMemes, SearchResponse response) {
+        SearchHits hits = response.getHits();
+
+        Meme[] memes = new Meme[hits.totalHits() > howManyMemes? howManyMemes : (int) hits.totalHits()];
+
+        for(int i = 0; i < memes.length; i++) {
+            Map<String, Object> memeData = hits.getAt(i).getSource();
+            Meme m = new Meme();
+            m.setImgUrl((String) memeData.get("img_url"));
+            m.setTitle((String) memeData.get("title"));
+            m.setUrl((String) memeData.get("url"));
+            m.setId(hits.getAt(i).getId());
+
+            memes[i] = m;
+        }
+
+        return memes;
+    }
+
 
     private float probabilityOfShowingMemesSimilarUsersLiked(int howManyMemes, List<User> similarUsers) {
         return 0;
@@ -126,8 +105,8 @@ public class MemeRecommender {
         return false;
     }
 
-    private boolean userHasFewRatings(UserPreferences userPreferences) {
-        return userPreferences.getMemesUserHasRated().size() < 20;
+    private boolean userHasFewRatings(List<String> memesUserHasRated) {
+        return memesUserHasRated.size() < 20;
     }
 
 }
