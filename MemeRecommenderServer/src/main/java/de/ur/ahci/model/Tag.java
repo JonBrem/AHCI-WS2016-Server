@@ -18,12 +18,15 @@ import java.util.Map;
 
 public class Tag {
 
+    public static final String INDEX_NAME = "tags";
+    public static final String ES_TAG_NAME = "tag_name";
+
     public static Map<String, Tag> getAllTagsInDb(ElasticSearchContextListener es) {
         Map<String, Tag> allTags = new HashMap<>();
 
         Map<String, Object> query = new HashMap<>();
 
-        ActionFuture<SearchResponse> response = es.searchrequest("tags", QueryBuilders.matchAllQuery(), 0, 10000);
+        ActionFuture<SearchResponse> response = es.searchrequest(INDEX_NAME, QueryBuilders.matchAllQuery(), 0, 10000);
 
         try {
             SearchResponse results = response.actionGet();
@@ -38,7 +41,7 @@ public class Tag {
 
     private static void addToTagMap(SearchHit searchHit, Map<String, Tag> allTags) {
         Tag tag = new Tag();
-        tag.setTagName((String) searchHit.getSource().get("tag_name"));
+        tag.setTagName((String) searchHit.getSource().get(ES_TAG_NAME));
         tag.setId(searchHit.getId());
         allTags.put(searchHit.getId(), tag);
     }
@@ -59,16 +62,16 @@ public class Tag {
     }
 
     public boolean existsInDb(ElasticSearchContextListener es) {
-        SearchResponse response = es.searchrequest("tags", QueryBuilders.matchQuery("tag_name", tagName), 0, 1).actionGet();
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.matchQuery(ES_TAG_NAME, tagName), 0, 1).actionGet();
         return response.getHits().totalHits() > 0;
     }
 
     public String insert(ElasticSearchContextListener es) {
         Map<String, Object> data = new HashMap<>();
-        data.put("tag_name", tagName);
+        data.put(ES_TAG_NAME, tagName);
 
         try {
-            IndexResponse response = es.indexRequest("tags", data).actionGet();
+            IndexResponse response = es.indexRequest(INDEX_NAME, data).actionGet();
             return response.getId();
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,22 +79,28 @@ public class Tag {
         return null;
     }
 
+    /**
+     * Adds the tag id to the meme's list of tags.
+     * @param memeId the meme's id
+     * @param tagId the tag's id
+     * @param es elastic search connection
+     */
     public void insertLink(String memeId, String tagId, ElasticSearchContextListener es) {
         // get meme
-        SearchResponse response = es.searchrequest("memes", QueryBuilders.idsQuery("memes").addIds(memeId), 0, 1).actionGet();
+        SearchResponse response = es.searchrequest(Meme.ES_INDEX_MEMES, QueryBuilders.idsQuery(Meme.ES_INDEX_MEMES).addIds(memeId), 0, 1).actionGet();
 
         // add to meme tags
         SearchHits hits = response.getHits();
         if(hits.totalHits() > 0) {
             SearchHit meme = hits.getAt(0);
 
-            List<Object> tags = meme.getFields().get("tag_list").getValues();
+            List<Object> tags = meme.getFields().get(Meme.ES_TAG_LIST).getValues();
             tags.add(tagId);
 
             Map<String, Object> data = new HashMap<>();
             data.put("tag_list", tags);
 
-            es.updateRequest("memes", meme.getId(), data);
+            es.updateRequest(Meme.ES_INDEX_MEMES, meme.getId(), data);
         }   // else {
             //   do nothing, we don't know what link to insert :(
             //}

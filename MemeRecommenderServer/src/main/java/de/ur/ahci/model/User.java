@@ -15,14 +15,14 @@ public class User {
         List<String> listOfMemeIDs = new ArrayList<>();
 
         int start = 0;
-        int atATime = 5000;
+        int atATime = 5000; // so that not too many for the system to handle are loaded at once
 
         while(true) {
-            SearchResponse response = es.searchrequest("ratings", QueryBuilders.matchQuery("user_id", userId), start, atATime).actionGet();
+            SearchResponse response = es.searchrequest(Rating.RATINGS_INDEX, QueryBuilders.matchQuery(Rating.ES_USER_ID, userId), start, atATime).actionGet();
             SearchHits hits = response.getHits();
 
             for(SearchHit hit : hits) {
-                listOfMemeIDs.add((String) hit.getSource().get("meme_id"));
+                listOfMemeIDs.add((String) hit.getSource().get(Rating.ES_MEME_ID));
             }
 
             if(hits.totalHits() < atATime) break;

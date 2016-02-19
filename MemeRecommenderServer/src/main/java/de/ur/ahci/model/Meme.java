@@ -2,26 +2,32 @@ package de.ur.ahci.model;
 
 import meme_recommender.ElasticSearchContextListener;
 import org.elasticsearch.action.index.IndexResponse;
-import util.Const;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jonbr on 27.10.2015.
- */
 public class Meme {
 
+    public static final String ES_INDEX_MEMES = "memes";
+
+    public static final String ES_URL = "url";
+    public static final String ES_TITLE = "title";
+    public static final String ES_IMG_URL = "img_url";
+    public static final String ES_TAG_LIST = "tag_list";
 
     private String title;
     private String url;
     private List<String> tags;
     private String imgUrl;
     private String id;
+
+
 
     public Meme() {
         tags = new ArrayList<>();
@@ -88,15 +94,45 @@ public class Meme {
     public String insert(ElasticSearchContextListener es) {
         Map<String, Object> data = new HashMap<>();
 
-        data.put("url", url);
-        data.put("img_url", imgUrl);
-        data.put("title", title);
+        data.put(ES_URL, url);
+        data.put(ES_IMG_URL, imgUrl);
+        data.put(ES_TITLE, title);
 
         try {
-            IndexResponse response = es.indexRequest("memes", data).actionGet();
+            IndexResponse response = es.indexRequest(ES_INDEX_MEMES, data).actionGet();
             return response.getId();
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Loads the meme (with id, title, url, img_url and tags) with the specified id from elastic search.
+     * @param id the meme's id
+     * @param es elastic search connection
+     * @return the meme object
+     */
+    public static Meme load(String id, ElasticSearchContextListener es) {
+        SearchResponse response = es.searchrequest(ES_INDEX_MEMES, QueryBuilders.idsQuery(ES_INDEX_MEMES).ids(id), 0, 1).actionGet();
+        SearchHits hits = response.getHits();
+
+        if(hits.totalHits() > 0) {
+            SearchHit hit = hits.getAt(0);
+            Meme meme = new Meme();
+            try {
+                meme.setId(hit.getId());
+                meme.setImgUrl((String) hit.getSource().get(ES_IMG_URL));
+                meme.setUrl((String) hit.getSource().get(ES_URL));
+                meme.setTitle((String) hit.getSource().get(ES_TITLE));
+                if(hit.getSource().containsKey(ES_TAG_LIST)) {
+                    ((List<String>) hit.getSource().get("tag_list")).forEach(meme::addTag);
+                }
+                return meme;
+            } catch (Exception e) {
+                return meme;
+            }
+        } else {
             return null;
         }
     }
