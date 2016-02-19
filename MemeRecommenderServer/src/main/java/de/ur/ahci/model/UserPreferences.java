@@ -13,7 +13,7 @@ import java.util.*;
 
 public class UserPreferences {
 
-    private static final String TYPE_NAME = "user_pref";
+    public static final String TYPE_NAME = "user_pref";
 
     private Map<String, TagPreference> userRatings;
 
@@ -113,7 +113,7 @@ public class UserPreferences {
         return userRatings;
     }
 
-    private class TagPreference {
+    public class TagPreference {
         private int totalRatingsCounter;
         private int goodRatingsCounter;
 

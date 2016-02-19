@@ -12,8 +12,7 @@ import java.net.InetAddress;
 import java.util.Map;
 
 /**
- * Created by jonbr on 26.10.2015.
- * Modified by jueha on same day!
+ * Servlet class that directs HTTP-POST and HTTP-GET to the same method, "handleRequest"
  */
 public class Servlet extends HttpServlet {
 
@@ -24,7 +23,7 @@ public class Servlet extends HttpServlet {
         System.out.println("Your current Hostname : " + hostname);
     }
 
-    private void handleRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void handleRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         RequestHandler.manageRequest(req, resp, this.getServletContext());
     }
 

@@ -13,7 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by jonbr on 28.10.2015.
+ * A RequestHandler handles a subset of all URLs that reach the server.
+ * One example is to match URLs that start with a certain path or pattern and respond to those.
+ *
+ * All RequestHandlers should be registered in this class.
  */
 public abstract class RequestHandler {
 
@@ -21,7 +24,7 @@ public abstract class RequestHandler {
 
     static {
         requestHandlers = new ArrayList<>();
-        requestHandlers.add(new WebRequestHandler());
+        requestHandlers.add(new WebRequestHandler()); // first / index zero because this one handles files as well, and files are the "fallback" if no method can be found.
         requestHandlers.add(new AppRequestHandler());
         requestHandlers.add(new CrawlerRequestHandler());
         requestHandlers.add(new DbInspectionRequestHandler());

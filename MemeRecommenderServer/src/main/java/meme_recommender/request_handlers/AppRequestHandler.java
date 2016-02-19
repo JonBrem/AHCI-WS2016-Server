@@ -1,6 +1,7 @@
 package meme_recommender.request_handlers;
 
 import de.ur.ahci.model.Meme;
+import de.ur.ahci.model.Rating;
 import de.ur.ahci.model.UserPreferences;
 import meme_recommender.ElasticSearchContextListener;
 import meme_recommender.RequestHandler;
@@ -18,29 +19,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * The App Request Handler handles every request sent from the App.
+ * It is used to deliver IDs, load images and store ratings.
+ */
 public class AppRequestHandler extends RequestHandler {
 
+    public static final String LOAD_IMAGES = "load_images";
+    public static final String REQUEST_ID = "request_id";
 
     @Override
     public boolean handleRequest(HttpServletRequest req, HttpServletResponse resp, ServletContext ctx, Cookie[] cookies, PrintWriter out) {
-        String uri = req.getRequestURI();
-        uri = uri.substring(1);
+        String uri = req.getRequestURI().substring(1); // get URI without /
 
-        if(!(uri.startsWith("load_images") || uri.startsWith("request_id"))) return false;
+        if(!handlesRequest(uri)) return false;
 
-        if (uri.startsWith("load_images")) {
-            out.write("{\n");
-            String ratings = applyRatings(req.getParameterMap());
-
-            if(ratings != null && ratings.length() > 0) {
-                out.write(ratings);
-                out.write(",\n");
-            }
-
-            out.write(getRecommendedImages(req.getParameterMap()));
-            out.write("}\n");
-        } else if (uri.startsWith("request_id")) {
+        if (uri.startsWith(LOAD_IMAGES)) {
+            handleLoadImagesRequest(req, out);
+        } else if (uri.startsWith(REQUEST_ID)) {
             respondToUserIdRequest(out);
         } else {
             out.write("{}");
@@ -48,8 +44,33 @@ public class AppRequestHandler extends RequestHandler {
 
         out.flush();
         out.close();
-
         return true;
+    }
+
+    /**
+     * @param uri the URI that was sent to the server.
+     * @return true if this request handler handles the URI and false if it does not.
+     */
+    private boolean handlesRequest(String uri) {
+        return uri.startsWith(LOAD_IMAGES) || uri.startsWith(REQUEST_ID);
+    }
+
+    /**
+     * @param req the http request (possible containing ratings)
+     * @param out stream that will receive the list of images for the client & possibly a list of ratings that
+     *            were approved by the server.
+     */
+    private void handleLoadImagesRequest(HttpServletRequest req, PrintWriter out) {
+        out.write("{\n");
+        String ratings = applyRatings(req.getParameterMap());
+
+        if(ratings != null && ratings.length() > 0) {
+            out.write(ratings);
+            out.write(",\n");
+        }
+
+        out.write(getRecommendedImages(req.getParameterMap()));
+        out.write("}\n");
     }
 
     /**
@@ -65,7 +86,7 @@ public class AppRequestHandler extends RequestHandler {
         String userId = parameterMap.get("user_id")[0];
         String ratingsString = parameterMap.get("ratings")[0];
 
-        String[] ratingIDs = storeRatings(userId, ratingsString);
+        String[] ratingIDs = handleSentRatings(userId, ratingsString);
 
         StringBuilder ratingIDString = new StringBuilder("\t\"rated_meme_ids\": [");
         for(int i = 0; i < ratingIDs.length; i++) {
@@ -77,38 +98,65 @@ public class AppRequestHandler extends RequestHandler {
         return ratingIDString.toString();
     }
 
-    private String[] storeRatings(String userId, String ratingsString) {
+    /**
+     * @param userId The user's ID
+     * @param ratingsString The ratings string (memeId1:ratingValue1,memeId2:ratingValue2,...)
+     * @return Array of memeIDs, <strong>NOT</strong> rating IDs!! of the items that were stored.
+     */
+    private String[] handleSentRatings(String userId, String ratingsString) {
         ElasticSearchContextListener es = ElasticSearchContextListener.getInstace();
 
+        List<String> ratedMemeIDs = storeRatings(userId, ratingsString, es);
+        updateUserPreferences(userId);
+
+        return toArray(ratedMemeIDs);
+    }
+
+    /**
+     * @param strings List of Strings to put in Array
+     * @return Array of Strings
+     */
+    private String[] toArray(List<String> strings) {
+        String[] arr = new String[strings.size()];
+        for(int i = 0; i < strings.size(); i++) arr[i] = strings.get(i);
+        return arr;
+    }
+
+    /**
+     * @param userId The user's ID
+     * @param ratingsString The ratings string (memeId1:ratingValue1,memeId2:ratingValue2,...)
+     * @param es ElasticSearch connection
+     * @return List of memeIDs, <strong>NOT</strong> rating IDs!! of the items that were stored.
+     */
+    private List<String> storeRatings(String userId, String ratingsString, ElasticSearchContextListener es) {
         String[] ratings = ratingsString.split(",");
-        List<String> ratedMemeIDs = new ArrayList<String>();
-        for(int i = 0; i < ratings.length; i++) {
-            Map<String, Object> data = new HashMap<>();
-            String[] rating = ratings[i].split(":");
+        List<String> ratedMemeIDs = new ArrayList<>();
+        for (String rating : ratings) {
+            String[] ratingParts = rating.split(":");
 
-            data.put("user_id", userId);
-            data.put("meme_id", rating[0]);
-            data.put("value", rating[1]);
-            data.put("rating_time", System.currentTimeMillis());
+            String ratingId = Rating.save(es, userId, ratingParts[0], ratingParts[1]);
 
-            try {
-                ActionFuture<IndexResponse> response = es.indexRequest("ratings", data);
-                String ratingId = response.actionGet().getId(); // just call any method to trigger exception if there was a problem.
-                ratedMemeIDs.add(rating[0]);
-            } catch (Exception e) {
-                // meme ID not being returned is the error
+            if (ratingId != null) {
+                ratedMemeIDs.add(ratingParts[0]);
             }
         }
+        return ratedMemeIDs;
+    }
 
+    /**
+     * Updates the user preferences of the specified user (done in background)
+     * @param userId The user's id
+     */
+    private void updateUserPreferences(String userId) {
         new Thread(() -> {
             new UserPreferences().build(userId, ElasticSearchContextListener.getInstace());
         }).start();
-
-        String[] ratedMemeIDsArr = new String[ratedMemeIDs.size()];
-        for(int i = 0; i < ratedMemeIDs.size(); i++) ratedMemeIDsArr[i] = ratedMemeIDs.get(i);
-        return ratedMemeIDsArr;
     }
 
+    /**
+     * Creates a new user id and writes on the print writer as json
+     * @param out PrintWriter (most likely for the HTTP response)
+     */
     private void respondToUserIdRequest(PrintWriter out) {
         String id = createNewUserId();
         if(id != null) {
@@ -157,23 +205,25 @@ public class AppRequestHandler extends RequestHandler {
         if(params.containsKey("how_many")) {
             howManyMemes = Integer.parseInt(params.get("how_many")[0]);
         }
-
         Meme[] memes = new MemeRecommender(ElasticSearchContextListener.getInstace()).recommend(userId, howManyMemes);
+        return buildMemeJsonResponse(memes);
+    }
 
-
+    /**
+     * @param memes Array of Meme objects that will be sent to the client as JSON
+     * @return JSON representation of the memes
+     */
+    private String buildMemeJsonResponse(Meme[] memes) {
         StringBuilder builder = new StringBuilder();
-
         builder.append("\timages: [\n");
 
         for(int i = 0; i < memes.length; i++) {
             if(memes[i] == null) continue;
 
-            builder.append("\t\t{\n");
-
-            builder.append("\t\t\tid: ").append(memes[i].getId()).append(",\n");
-            builder.append("\t\t\turl: \"").append(memes[i].getUrl()).append("\"\n");
-
-            builder.append("\t\t}");
+            builder.append("\t\t{\n")
+                    .append("\t\t\tid: ").append(memes[i].getId()).append(",\n")
+                    .append("\t\t\turl: \"").append(memes[i].getUrl()).append("\"\n")
+                    .append("\t\t}");
             if(i != memes.length - 1) {
                 builder.append(",");
             }
@@ -182,17 +232,6 @@ public class AppRequestHandler extends RequestHandler {
 
         builder.append("\t]\n");
         return builder.toString();
-    }
-
-    private Meme getMeme(String url, String imgUrl, String title, String... tags) {
-        Meme m = new Meme();
-        m.setImgUrl(imgUrl);
-        m.setTitle(title);
-        m.setUrl(url);
-        for(String t : tags) {
-            m.addTag(t);
-        }
-        return m;
     }
 
 }
