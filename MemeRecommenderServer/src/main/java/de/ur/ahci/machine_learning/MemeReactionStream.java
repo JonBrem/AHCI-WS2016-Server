@@ -3,7 +3,7 @@ package de.ur.ahci.machine_learning;
 import util.FileUtility;
 
 /**
- *
+ * Stream of meme reaction data stored in one file.
  */
 public class MemeReactionStream {
 

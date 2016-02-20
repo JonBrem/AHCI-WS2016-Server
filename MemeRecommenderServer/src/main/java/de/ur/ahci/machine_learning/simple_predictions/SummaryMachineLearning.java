@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * 
+ */
 public class SummaryMachineLearning {
 
     private static final String[] EMOTIONCODES = {"neutral/other", "smile", "grin", "laughter", "ROFL"};

@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by jonbr on 17.11.2015.
+ * model class for storing basically all the data that the google mobile vision api provides about faces.
  */
 public class Face {
 

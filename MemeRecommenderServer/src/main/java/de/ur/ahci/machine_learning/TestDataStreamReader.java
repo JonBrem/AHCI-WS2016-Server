@@ -3,7 +3,7 @@ package de.ur.ahci.machine_learning;
 import java.util.function.Consumer;
 
 /**
- * Created by jonbr on 17.11.2015.
+ * The TestDataStreamReader class makes it easy to iterate over all the data we collected.
  */
 public class TestDataStreamReader {
 

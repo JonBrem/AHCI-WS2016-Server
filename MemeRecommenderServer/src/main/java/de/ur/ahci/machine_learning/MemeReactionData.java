@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by jonbr on 17.11.2015.
+ * Stores one user's reaction to seeing one meme (list of recognized facial expressions, selected emotion & which meme image it was)
  */
 public class MemeReactionData {
 

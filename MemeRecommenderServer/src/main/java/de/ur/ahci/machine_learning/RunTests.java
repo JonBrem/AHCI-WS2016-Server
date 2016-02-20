@@ -6,7 +6,7 @@ import de.ur.ahci.machine_learning.simple_predictions.ClassifierTestResults;
 import de.ur.ahci.machine_learning.simple_predictions.SummaryClassifier;
 
 /**
- * Created by jonbr on 13.01.2016.
+ * "Run" class for testing the classifiers / emotion predictors
  */
 public class RunTests {
 

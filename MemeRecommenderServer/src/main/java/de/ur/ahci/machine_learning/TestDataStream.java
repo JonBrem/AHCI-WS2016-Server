@@ -3,7 +3,7 @@ package de.ur.ahci.machine_learning;
 import java.io.File;
 
 /**
- * Created by jonbr on 17.11.2015.
+ * Stream for test data (one test = all meme reactions for one user). Facilitates iterating over all the data we collected.
  */
 public class TestDataStream {
 

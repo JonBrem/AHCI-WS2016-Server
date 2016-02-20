@@ -1,16 +1,12 @@
 package de.ur.ahci.machine_learning;
 
 /**
- * Created by jonbr on 17.11.2015.
+ * Face "Landmark" such as nose, left eye etc. basically just a model class for storing coordinates.
  */
 public class FaceLandmark {
 
     private float x;
     private float y;
-
-    public FaceLandmark() {
-
-    }
 
     public float getX() {
         return x;

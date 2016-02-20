@@ -5,7 +5,8 @@ import de.ur.ahci.machine_learning.MemeReactionData;
 import java.util.*;
 
 /**
- * Created by jonbr on 03.12.2015.
+ * Attempts to classify a user's reaction to a meme by building the average of all smiling probabilities and checking
+ * if it is higher than a specified threshold.
  */
 public class AverageClassifier implements Classifier {
 

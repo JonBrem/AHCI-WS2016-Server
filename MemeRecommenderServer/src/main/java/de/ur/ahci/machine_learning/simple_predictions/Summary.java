@@ -5,6 +5,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Class that helps creating 5-point-summaries (that's where the name originates) and, more generally,
+ * calculating any quantile of a list of comparable items.
+ * @param <E>
+ *     Probably "Float" (for smiling probabilities), but can basically be anything. It helps if it is a Comparable.
+ */
 public class Summary<E> {
 
     List<E> items;

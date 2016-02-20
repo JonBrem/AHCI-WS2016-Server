@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Created by jonbr on 17.11.2015.
+ * Class that facilitates iterating over all meme reactions available for one user.
  */
 public class TestData {
 

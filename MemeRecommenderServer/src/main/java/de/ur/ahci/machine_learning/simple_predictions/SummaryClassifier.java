@@ -4,6 +4,10 @@ import de.ur.ahci.machine_learning.*;
 
 import java.util.*;
 
+/**
+ * The Summary Classifier attempts to classify a user's reaction to a meme by looking at the values at one (or more)
+ * specified quantiles and verifying that the values at those quantiles are higher than specified thresholds.
+ */
 public class SummaryClassifier implements Classifier {
 
     private float quantile = 0.7f;
