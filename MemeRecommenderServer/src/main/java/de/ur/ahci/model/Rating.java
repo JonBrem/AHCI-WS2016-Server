@@ -2,6 +2,8 @@ package de.ur.ahci.model;
 
 import meme_recommender.ElasticSearchContextListener;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +36,11 @@ public class Rating {
         data.put(ES_VALUE, value);
         data.put(ES_RATING_TIME, System.currentTimeMillis());
         return data;
+    }
+
+    public static long getTotalNumberOfRatings(ElasticSearchContextListener es) {
+        SearchResponse resp = es.searchrequest(RATINGS_INDEX, QueryBuilders.matchAllQuery(), 0, 0).actionGet();
+        return resp.getHits().getTotalHits();
     }
 
 }

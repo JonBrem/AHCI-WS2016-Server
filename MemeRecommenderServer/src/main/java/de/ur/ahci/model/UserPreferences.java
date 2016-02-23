@@ -38,7 +38,7 @@ public class UserPreferences {
             Map<String, Object> source = hit.getSource();
 
             for(String key : source.keySet()) {
-                if(!key.endsWith(ES_APPENDIX_TOTAL) && !key.equals(ES_LAST_CALCULATED)) {
+                if(!key.equals(ES_USER_ID) && !key.endsWith(ES_APPENDIX_TOTAL) && !key.equals(ES_LAST_CALCULATED)) {
                     buildPreferenceFromStorage(source, key);
                 }
             }
@@ -52,7 +52,7 @@ public class UserPreferences {
     private void buildPreferenceFromStorage(Map<String, Object> searchHitSource, String key) {
         TagPreference pref = new TagPreference();
         pref.totalRatingsCounter = (int) searchHitSource.get(key + ES_APPENDIX_TOTAL);
-        pref.goodRatingsCounter = (int) (pref.totalRatingsCounter * (float) searchHitSource.get(key));
+        pref.goodRatingsCounter = (int) (pref.totalRatingsCounter * (double) searchHitSource.get(key));
         userRatings.put(key, new TagPreference());
     }
 
@@ -82,13 +82,15 @@ public class UserPreferences {
     private synchronized void storePreferences(String userId, ElasticSearchContextListener es) {
         Map<String, Object> data = getMapForEsFromUserRatings(userId);
 
-        String oldId = getOldIdIfExists(userId, es);
+        SearchHit oldEntry = getOldEntryIfExists(userId, es);
 
-        if (oldId != null) {
-            es.updateRequest(ES_INDEX_NAME, oldId, data);
+        if (oldEntry != null) {
+            UserPrefTotals.subtract(oldEntry.getSource(), es);
+            es.updateRequest(ES_INDEX_NAME, oldEntry.getId(), data);
         } else {
             es.indexRequest(ES_INDEX_NAME, data);
         }
+        UserPrefTotals.add(data, es);
     }
 
     /**
@@ -97,14 +99,14 @@ public class UserPreferences {
      * @param es elastic search connection
      * @return The Id if prefs for this user exist or null
      */
-    private String getOldIdIfExists(String userId, ElasticSearchContextListener es) {
-        String oldId = null;
+    private SearchHit getOldEntryIfExists(String userId, ElasticSearchContextListener es) {
+        SearchHit oldEntry = null;
 
         SearchResponse response = es.searchrequest(ES_INDEX_NAME, QueryBuilders.matchQuery(ES_USER_ID, userId), 0, 1).actionGet();
         if(response.getHits().totalHits() > 0) {
-            oldId = response.getHits().getAt(0).id();
+            oldEntry = response.getHits().getAt(0);
         }
-        return oldId;
+        return oldEntry;
     }
 
     /**
@@ -118,12 +120,16 @@ public class UserPreferences {
         Map<String, Object> data = new HashMap<>();
         data.put(ES_USER_ID, userId);
         for(String tagId : userRatings.keySet()) {
-            data.put(tagId, userRatings.get(tagId).getValue());
+            data.put(tagId, roundTo10Percent(userRatings.get(tagId).getValue()));
             data.put(tagId + ES_APPENDIX_TOTAL, userRatings.get(tagId).totalRatingsCounter);
         }
         data.put(ES_LAST_CALCULATED, System.currentTimeMillis());
 
         return data;
+    }
+
+    private float roundTo10Percent(float value) {
+        return ((int) (value * 10)) / 10.0f;
     }
 
     /**
@@ -188,7 +194,7 @@ public class UserPreferences {
 
 
         public float getValue() {
-            return this.goodRatingsCounter / (float) this.totalRatingsCounter;
+            return roundTo10Percent(this.goodRatingsCounter / (float) this.totalRatingsCounter);
         }
 
     }

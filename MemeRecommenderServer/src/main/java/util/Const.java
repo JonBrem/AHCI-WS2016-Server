@@ -26,43 +26,43 @@ public class Const {
 
     public static void log(int level, String content) {
         if(LEVELS_ACTIVE[level]) {
-            out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t" + System.currentTimeMillis() + "\t" + content);
         }
     }
 
     public static void log(int level, int content) {
         if(LEVELS_ACTIVE[level]) {
-            out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t" + System.currentTimeMillis() + "\t" + content);
         }
     }
 
     public static void log(int level, float content) {
         if(LEVELS_ACTIVE[level]) {
-            out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t" + System.currentTimeMillis() + "\t" + content);
         }
     }
 
     public static void log(int level, long content) {
         if(LEVELS_ACTIVE[level]) {
-            out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t" + System.currentTimeMillis() + "\t" + content);
         }
     }
 
     public static void log(int level, double content) {
         if(LEVELS_ACTIVE[level]) {
-            out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t" + System.currentTimeMillis() + "\t" + content);
         }
     }
 
     public static void log(int level, byte content) {
         if(LEVELS_ACTIVE[level]) {
-            out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t" + System.currentTimeMillis() + "\t" + content);
         }
     }
 
     public static void log(int level, char content) {
         if(LEVELS_ACTIVE[level]) {
-            out.println(LEVEL_CODES[level] + "\t\t" + content);
+            out.println(LEVEL_CODES[level] + "\t" + System.currentTimeMillis() + "\t" + content);
         }
     }
 

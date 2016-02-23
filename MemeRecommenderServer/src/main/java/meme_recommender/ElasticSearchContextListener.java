@@ -1,5 +1,6 @@
 package meme_recommender;
 
+import de.ur.ahci.model.UserPrefTotals;
 import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.ActionListener;
@@ -60,6 +61,13 @@ public class ElasticSearchContextListener implements ServletContextListener {
                 .put("script.indexed", "off")
                 .build()).node();
         client = node.client();
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(8000);
+                UserPrefTotals.reloadCompletely(ElasticSearchContextListener.getInstace());
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     /**
