@@ -1,6 +1,7 @@
 package meme_recommender.request_handlers;
 
 import de.ur.ahci.model.Meme;
+import de.ur.ahci.model.MemeRecommendation;
 import de.ur.ahci.model.Rating;
 import de.ur.ahci.model.UserPreferences;
 import meme_recommender.ElasticSearchContextListener;
@@ -82,8 +83,11 @@ public class AppRequestHandler extends RequestHandler {
      * Must also contain the <strong>user_id</strong>.
      */
     private String applyRatings(Map<String, String[]> parameterMap) {
-        if(!parameterMap.containsKey("ratings")) return null;
         String userId = parameterMap.get("user_id")[0];
+        if(!parameterMap.containsKey("ratings")) {
+            Rating.removePendingRatings(userId, ElasticSearchContextListener.getInstace());
+            return null;
+        }
         String ratingsString = parameterMap.get("ratings")[0];
 
         String[] ratingIDs = handleSentRatings(userId, ratingsString);
@@ -205,7 +209,8 @@ public class AppRequestHandler extends RequestHandler {
         if(params.containsKey("how_many")) {
             howManyMemes = Integer.parseInt(params.get("how_many")[0]);
         }
-        Meme[] memes = new MemeRecommender(ElasticSearchContextListener.getInstace()).recommend(userId, howManyMemes);
+        MemeRecommendation[] memes = new MemeRecommender(ElasticSearchContextListener.getInstace()).recommend(userId, howManyMemes);
+        for(MemeRecommendation m : memes) Rating.onSendToUser(ElasticSearchContextListener.getInstace(), userId, m.getMeme().getId());
         return buildMemeJsonResponse(memes);
     }
 
@@ -213,7 +218,7 @@ public class AppRequestHandler extends RequestHandler {
      * @param memes Array of Meme objects that will be sent to the client as JSON
      * @return JSON representation of the memes
      */
-    private String buildMemeJsonResponse(Meme[] memes) {
+    private String buildMemeJsonResponse(MemeRecommendation[] memes) {
         StringBuilder builder = new StringBuilder();
         builder.append("\timages: [\n");
 
@@ -221,8 +226,10 @@ public class AppRequestHandler extends RequestHandler {
             if(memes[i] == null) continue;
 
             builder.append("\t\t{\n")
-                    .append("\t\t\tid: ").append(memes[i].getId()).append(",\n")
-                    .append("\t\t\turl: \"").append(memes[i].getUrl()).append("\"\n")
+                    .append("\t\t\tid: ").append(memes[i].getMeme().getId()).append(",\n")
+                    .append("\t\t\ttitle: \"").append(memes[i].getMeme().getTitle()).append("\",\n")
+                    .append("\t\t\treason: \"").append(memes[i].getReason()).append("\",\n")
+                    .append("\t\t\turl: \"").append(memes[i].getMeme().getUrl()).append("\"\n")
                     .append("\t\t}");
             if(i != memes.length - 1) {
                 builder.append(",");

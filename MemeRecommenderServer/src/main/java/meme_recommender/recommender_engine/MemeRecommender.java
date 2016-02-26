@@ -34,7 +34,7 @@ public class MemeRecommender {
      * @return
      * Array of recommended Memes
      */
-    public Meme[] recommend(String userId, int howManyMemes) {
+    public MemeRecommendation[] recommend(String userId, int howManyMemes) {
         UserPreferences userPreferences = getUserPreferences(userId);
         List<String> memesUserHasRated = User.getListOfMemeIDsUserHasRated(userId, es);
 
@@ -62,7 +62,7 @@ public class MemeRecommender {
     }
 
     // @ todo test
-    private Meme[] showMemesSimilarUsersLiked(int howManyMemes, List<String> memesUserHasRated, List<String> similarUsers) {
+    private MemeRecommendation[] showMemesSimilarUsersLiked(int howManyMemes, List<String> memesUserHasRated, List<String> similarUsers) {
         int maxSize = 10;
         int iterations = similarUsers.size() / maxSize;
         if((similarUsers.size() % maxSize) != 0) iterations++;
@@ -80,12 +80,16 @@ public class MemeRecommender {
 
         List<String> memesSortedByNumberOfLikes = getMemesSortedByNumberOfLikes(memeLikes);
 
+        if(memesSortedByNumberOfLikes.size() == 0) return showRandomMemes(howManyMemes, memesUserHasRated);
+
         if(memesSortedByNumberOfLikes.size() < howManyMemes) {
             howManyMemes = memesSortedByNumberOfLikes.size();
         }
 
-        Meme[] toReturn = new Meme[howManyMemes];
-        for(int i = 0; i < toReturn.length; i++) toReturn[i] = Meme.load(memesSortedByNumberOfLikes.get(i), es);
+        MemeRecommendation[] toReturn = new MemeRecommendation[howManyMemes];
+        for(int i = 0; i < toReturn.length; i++) {
+            toReturn[i] = new MemeRecommendation(Meme.load(memesSortedByNumberOfLikes.get(i), es), MemeRecommendation.REASON_SIMILAR_USERS, null);
+        }
         return toReturn;
     }
 
@@ -116,12 +120,13 @@ public class MemeRecommender {
         usersForIteration.forEach(userId -> query.should(QueryBuilders.matchQuery(Rating.ES_USER_ID, userId)));
         query.minimumNumberShouldMatch(1);
         query.mustNot(QueryBuilders.idsQuery(toArray(memesUserHasRated)));
+        query.mustNot(QueryBuilders.matchQuery(Rating.ES_STATUS, Rating.ES_STATUS_PENDING));
 
         int start = 0;
         int size = 5000;
 
         while(true) {
-            SearchResponse response = es.searchrequest(Rating.RATINGS_INDEX, query, start, size).actionGet();
+            SearchResponse response = es.searchrequest(Rating.ES_INDEX_NAME, query, start, size).actionGet();
             SearchHits hits = response.getHits();
 
             for(SearchHit hit : hits) {
@@ -167,9 +172,7 @@ public class MemeRecommender {
 
     // @TODO test
     // @todo decide if weight should be how much the user likes it -0.5 or leave it as it is (user likes it with likelihood 0.1 -> tag being present leads to +0.1 score)
-    private Meme[] showMemesForUserPreferences(int howManyMemes, List<String> memesUserHasRated, UserPreferences userPreferences) {
-        Map<String, Float> boosts = new HashMap<>();
-
+    private MemeRecommendation[] showMemesForUserPreferences(int howManyMemes, List<String> memesUserHasRated, UserPreferences userPreferences) {
         // Function score query: see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html
         FunctionScoreQueryBuilder queryBuilder = QueryBuilders.functionScoreQuery().boostMode(CombineFunction.MULT).scoreMode("sum");
 
@@ -189,7 +192,12 @@ public class MemeRecommender {
         // actual search in ES
         SearchResponse response = es.searchrequest("memes", filtered, 0, howManyMemes).actionGet();
 
-        return getMemesFromResultSet(howManyMemes, response);
+        Meme[] memesFromResultSet = getMemesFromResultSet(howManyMemes, response);
+        MemeRecommendation[] recommendations = new MemeRecommendation[memesFromResultSet.length];
+        for (int i = 0; i < recommendations.length; i++) {
+            recommendations[i] = new MemeRecommendation(memesFromResultSet[i], MemeRecommendation.REASON_TAGS, null);
+        }
+        return recommendations;
     }
 
     // @todo test
@@ -273,13 +281,18 @@ public class MemeRecommender {
     }
 
 
-    private Meme[] showRandomMemes(int howManyMemes, List<String> memesUserHasRated) {
+    private MemeRecommendation[] showRandomMemes(int howManyMemes, List<String> memesUserHasRated) {
         QueryBuilder query = QueryBuilders.functionScoreQuery(QueryBuilders.matchAllQuery(),
                 ScoreFunctionBuilders.randomFunction(new Random().nextInt()));
         QueryBuilder filter = QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("id", memesUserHasRated));
         SearchResponse response = es.searchrequest("memes", query, filter, 0, howManyMemes).actionGet();
 
-        return getMemesFromResultSet(howManyMemes, response);
+        Meme[] memesFromResultSet = getMemesFromResultSet(howManyMemes, response);
+        MemeRecommendation[] recommendations = new MemeRecommendation[memesFromResultSet.length];
+        for (int i = 0; i < recommendations.length; i++) {
+            recommendations[i] = new MemeRecommendation(memesFromResultSet[i], MemeRecommendation.REASON_RANDOM, null);
+        }
+        return recommendations;
     }
 
     private Meme[] getMemesFromResultSet(int howManyMemes, SearchResponse response) {

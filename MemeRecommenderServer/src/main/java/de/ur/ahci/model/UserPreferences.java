@@ -63,9 +63,11 @@ public class UserPreferences {
      */
     public void build(String userId, ElasticSearchContextListener es) {
         int start = 0;
-        int atATime = 5000; // just so the system does not crash if there are too many ratings
+        int atATime = 5000; // just so the system does not crash if there are too many ratings for one user
         while(true) {
-            SearchResponse response = es.searchrequest(Rating.RATINGS_INDEX, QueryBuilders.matchQuery(ES_USER_ID, userId), start, atATime).actionGet();
+            SearchResponse response = es.searchrequest(Rating.ES_INDEX_NAME, QueryBuilders.boolQuery()
+                    .must(QueryBuilders.matchQuery(Rating.ES_USER_ID, userId))
+                    .mustNot(QueryBuilders.matchQuery(Rating.ES_STATUS, Rating.ES_STATUS_PENDING)), start, atATime).actionGet();
             buildPreferences(response.getHits(), es);
 
             if(response.getHits().totalHits() < atATime) break;

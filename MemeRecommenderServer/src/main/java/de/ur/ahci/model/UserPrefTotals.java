@@ -46,6 +46,8 @@ public class UserPrefTotals {
                     current.get(key).decreaseValueFor(Double.parseDouble((String) values.get(key)));
                 } else if (values.get(key) instanceof Float) {
                     current.get(key).decreaseValueFor((Float) values.get(key));
+                } else if (values.get(key) instanceof Double) {
+                    current.get(key).decreaseValueFor((Double) values.get(key));
                 }
             }
         }
@@ -93,8 +95,6 @@ public class UserPrefTotals {
                 current.get(key).increaseValueFor((Float) values.get(key));
             } else if (values.get(key) instanceof Double) {
                 current.get(key).increaseValueFor((Double) values.get(key));
-            } else {
-                System.out.println("And the winner is... " +values.get(key).getClass().getName());
             }
         }
     }

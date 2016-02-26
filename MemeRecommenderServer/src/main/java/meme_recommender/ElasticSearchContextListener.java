@@ -147,4 +147,24 @@ public class ElasticSearchContextListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
         node.close();
     }
+
+    /**
+     * Use with extreme caution! Data can NOT be restored!!
+     * Deletes all items of the specified type.
+     *
+     * @param name type name
+     */
+    private void clearType(String name) {
+        int start = 0;
+        int size = 5000;
+        while (true) {
+            SearchResponse response = searchrequest(name, QueryBuilders.matchAllQuery(), start, size).actionGet();
+            for(SearchHit hit : response.getHits()) {
+                deleteRequest(name, hit.getId()).actionGet();
+            }
+            if(response.getHits().getTotalHits() < size) break;
+            start += size;
+        }
+    }
+
 }
