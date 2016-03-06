@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class Rating {
 
-    public static final String ES_INDEX_NAME = "ratings";
+    public static final String INDEX_NAME = "ratings";
     public static final String ES_USER_ID = "user_id";
     public static final String ES_MEME_ID = "meme_id";
     public static final String ES_VALUE = "value";
@@ -30,10 +30,10 @@ public class Rating {
             Map<String, Object> data = getRatingsObjectMap(userId, memeId, value);
 
             if(pendingItemId != null) {
-                UpdateResponse response = es.updateRequest(ES_INDEX_NAME, pendingItemId, data).actionGet();
+                UpdateResponse response = es.updateRequest(INDEX_NAME, pendingItemId, data).actionGet();
                 return response.getId();
             } else {
-                IndexResponse response = es.indexRequest(ES_INDEX_NAME, data).actionGet();
+                IndexResponse response = es.indexRequest(INDEX_NAME, data).actionGet();
                 return response.getId();
             }
         } catch (Exception e) {
@@ -47,13 +47,13 @@ public class Rating {
         data.put(ES_MEME_ID, memeId);
         data.put(ES_STATUS, ES_STATUS_PENDING);
         data.put(ES_RATING_TIME, System.currentTimeMillis());
-        es.indexRequest(ES_INDEX_NAME, data);
+        es.indexRequest(INDEX_NAME, data);
     }
 
     private static String getPendingItemId(ElasticSearchContextListener es, String userId, String memeId) {
         String pendingItemId = null;
 
-        SearchResponse response = es.searchrequest(ES_INDEX_NAME, QueryBuilders.boolQuery()
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchQuery(ES_USER_ID, userId))
                 .must(QueryBuilders.matchQuery(ES_MEME_ID, memeId))
                 .must(QueryBuilders.matchQuery(ES_STATUS, ES_STATUS_PENDING)), 0, 1).actionGet();
@@ -76,15 +76,15 @@ public class Rating {
     }
 
     public static long getTotalNumberOfRatings(ElasticSearchContextListener es) {
-        SearchResponse resp = es.searchrequest(ES_INDEX_NAME, QueryBuilders.matchAllQuery(), 0, 0).actionGet();
+        SearchResponse resp = es.searchrequest(INDEX_NAME, QueryBuilders.matchAllQuery(), 0, 0).actionGet();
         return resp.getHits().getTotalHits();
     }
 
     public static void removePendingRatings(String userId, ElasticSearchContextListener es) {
         // definitely not  more than 2, but to be safe, take 100...
-        SearchResponse response = es.searchrequest(ES_INDEX_NAME, QueryBuilders.matchQuery(ES_STATUS, ES_STATUS_PENDING), 0, 100).actionGet();
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.matchQuery(ES_STATUS, ES_STATUS_PENDING), 0, 100).actionGet();
         for(SearchHit hit : response.getHits()) {
-            es.deleteRequest(ES_INDEX_NAME, hit.getId()).actionGet();
+            es.deleteRequest(INDEX_NAME, hit.getId()).actionGet();
         }
     }
 }

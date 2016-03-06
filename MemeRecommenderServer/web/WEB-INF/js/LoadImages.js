@@ -41,11 +41,13 @@ function LoadImages(tagCon) {
 			$("#img_here").attr("src", e.img_url);
 			$("#title").html(e.title);
 			$("#meme_id_input").val(e.id);
+			$("#url_here").attr("href", e.url);
 
 			if(e.tags) {
 				priv.setActiveTags(e.tags);
 			}
 		} catch(exception) {
+			console.log(exception);
 			// $("#meme_id_input").val(parseInt($("#meme_id_input").val()) - 2);
 			// publ.loadNextImage();
 		}

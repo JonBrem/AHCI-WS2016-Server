@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class UserPreferences {
 
-    public static final String ES_INDEX_NAME = "user_pref";
+    public static final String INDEX_NAME = "user_pref";
     public static final String ES_USER_ID = "user_id";
     public static final String ES_LAST_CALCULATED = "last_calculated";
     /** <strong>NOT a key!!</strong> End part of some keys in this index!! */
@@ -30,7 +30,7 @@ public class UserPreferences {
      * @param es elastic search connection
      */
     public void load(String userId, ElasticSearchContextListener es) {
-        SearchResponse response = es.searchrequest(ES_INDEX_NAME, QueryBuilders.matchQuery(ES_USER_ID, userId), 0, 1).actionGet();
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.matchQuery(ES_USER_ID, userId), 0, 1).actionGet();
 
         if(response.getHits().totalHits() > 0) {
             userRatings = new HashMap<>();
@@ -65,7 +65,7 @@ public class UserPreferences {
         int start = 0;
         int atATime = 5000; // just so the system does not crash if there are too many ratings for one user
         while(true) {
-            SearchResponse response = es.searchrequest(Rating.ES_INDEX_NAME, QueryBuilders.boolQuery()
+            SearchResponse response = es.searchrequest(Rating.INDEX_NAME, QueryBuilders.boolQuery()
                     .must(QueryBuilders.matchQuery(Rating.ES_USER_ID, userId))
                     .mustNot(QueryBuilders.matchQuery(Rating.ES_STATUS, Rating.ES_STATUS_PENDING)), start, atATime).actionGet();
             buildPreferences(response.getHits(), es);
@@ -88,9 +88,9 @@ public class UserPreferences {
 
         if (oldEntry != null) {
             UserPrefTotals.subtract(oldEntry.getSource(), es);
-            es.updateRequest(ES_INDEX_NAME, oldEntry.getId(), data);
+            es.updateRequest(INDEX_NAME, oldEntry.getId(), data);
         } else {
-            es.indexRequest(ES_INDEX_NAME, data);
+            es.indexRequest(INDEX_NAME, data);
         }
         UserPrefTotals.add(data, es);
     }
@@ -104,7 +104,7 @@ public class UserPreferences {
     private SearchHit getOldEntryIfExists(String userId, ElasticSearchContextListener es) {
         SearchHit oldEntry = null;
 
-        SearchResponse response = es.searchrequest(ES_INDEX_NAME, QueryBuilders.matchQuery(ES_USER_ID, userId), 0, 1).actionGet();
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.matchQuery(ES_USER_ID, userId), 0, 1).actionGet();
         if(response.getHits().totalHits() > 0) {
             oldEntry = response.getHits().getAt(0);
         }

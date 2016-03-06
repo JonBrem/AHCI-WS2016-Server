@@ -1,9 +1,6 @@
 package meme_recommender.request_handlers;
 
-import de.ur.ahci.model.Meme;
-import de.ur.ahci.model.MemeRecommendation;
-import de.ur.ahci.model.Rating;
-import de.ur.ahci.model.UserPreferences;
+import de.ur.ahci.model.*;
 import meme_recommender.ElasticSearchContextListener;
 import meme_recommender.RequestHandler;
 import meme_recommender.recommender_engine.MemeRecommender;
@@ -184,7 +181,7 @@ public class AppRequestHandler extends RequestHandler {
         data.put("created", System.currentTimeMillis());
 
         try {
-            ActionFuture<IndexResponse> actions = es.indexRequest("users", data);
+            ActionFuture<IndexResponse> actions = es.indexRequest(User.INDEX_NAME, data);
             return actions.actionGet().getId();
         } catch (Exception e) {
             return null;

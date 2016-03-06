@@ -11,7 +11,7 @@ import java.util.*;
 
 public class UserPrefTotals {
 
-    public static final String ES_INDEX_NAME = "user_pref_total";
+    public static final String INDEX_NAME = "user_pref_total";
 
     public static void reloadCompletely(ElasticSearchContextListener es) {
         Const.log(Const.LEVEL_VERBOSE, "Reloading total user prefs");
@@ -19,7 +19,7 @@ public class UserPrefTotals {
 
         int start = 0, atOnce = 5000;
         while(true) {
-            SearchResponse resp = es.searchrequest(UserPreferences.ES_INDEX_NAME, QueryBuilders.matchAllQuery(), start, atOnce).actionGet();
+            SearchResponse resp = es.searchrequest(UserPreferences.INDEX_NAME, QueryBuilders.matchAllQuery(), start, atOnce).actionGet();
             SearchHits hits = resp.getHits();
             for(SearchHit hit : hits) {
                 addValuesToCurrentDist(hit.getSource(), newDist);
@@ -60,16 +60,16 @@ public class UserPrefTotals {
         String oldId = getOldId(es);
 
         if(oldId == null) {
-            es.indexRequest(ES_INDEX_NAME, data);
+            es.indexRequest(INDEX_NAME, data);
         } else {
-            es.updateRequest(ES_INDEX_NAME, oldId, data);
+            es.updateRequest(INDEX_NAME, oldId, data);
         }
 
     }
 
     private static String getOldId(ElasticSearchContextListener es) {
         String oldId = null;
-        SearchResponse resp = es.searchrequest(ES_INDEX_NAME, QueryBuilders.matchAllQuery(), 0, 1).actionGet();
+        SearchResponse resp = es.searchrequest(INDEX_NAME, QueryBuilders.matchAllQuery(), 0, 1).actionGet();
         if(resp.getHits().getTotalHits() > 0) {
             oldId = resp.getHits().getAt(0).id();
         }
@@ -104,7 +104,7 @@ public class UserPrefTotals {
     }
 
     public static Map<String, UserPrefDistribution> get(ElasticSearchContextListener es) {
-        SearchResponse response = es.searchrequest(ES_INDEX_NAME, QueryBuilders.matchAllQuery(), 0, 1).actionGet();
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.matchAllQuery(), 0, 1).actionGet();
         SearchHits hits = response.getHits();
 
         if (hits.getTotalHits() > 0) {

@@ -2,16 +2,12 @@ package de.ur.ahci.model;
 
 import meme_recommender.ElasticSearchContextListener;
 import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.bootstrap.Elasticsearch;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,20 +83,16 @@ public class Tag {
      */
     public void insertLink(String memeId, String tagId, ElasticSearchContextListener es) {
         // get meme
-        SearchResponse response = es.searchrequest(Meme.ES_INDEX_MEMES, QueryBuilders.idsQuery(Meme.ES_INDEX_MEMES).addIds(memeId), 0, 1).actionGet();
-
+        Meme meme = Meme.load(memeId, es);
         // add to meme tags
-        SearchHits hits = response.getHits();
-        if(hits.totalHits() > 0) {
-            SearchHit meme = hits.getAt(0);
-
-            List<Object> tags = meme.getFields().get(Meme.ES_TAG_LIST).getValues();
+        if(meme != null) {
+            List<String> tags = meme.getTags();
             tags.add(tagId);
 
             Map<String, Object> data = new HashMap<>();
-            data.put("tag_list", tags);
+            data.put(Meme.ES_TAG_LIST, tags);
 
-            es.updateRequest(Meme.ES_INDEX_MEMES, meme.getId(), data);
+            es.updateRequest(Meme.INDEX_NAME, meme.getId(), data);
         }   // else {
             //   do nothing, we don't know what link to insert :(
             //}

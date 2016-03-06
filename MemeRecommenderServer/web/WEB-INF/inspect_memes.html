@@ -9,35 +9,44 @@
     <script src="js/jquery.js"></script>
 </head>
 <body>
-	<div class="container">
-		<div id="meme" class="row">	
-			<div class="col-md-8">
-				<h2 id="title">
-				</h2>
-				<div class="image">
-					<img id="img_here" />
+	<div class="container-fluid">
+		<div class="row">
+			<div id="meme" class="col-md-4">	
+				<div class="row">
+					<div class="col-md-12">
+						<h2 id="title">
+						</h2>
+						<div class="image">
+							<img id="img_here" />
+						</div>
+						<div class="url">
+							<a href="#" id="url_here" target="_blank" style="font-size: 20px">open original</a>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<div class="input-group">
+							<input type="text" class="form-control" id="meme_id_input" />
+							<span class="input-group-btn">
+								<button class="btn btn-default" id="load_specific_meme_button">Load</button>
+							</span>
+						</div>
+
+						<button class="btn btn-default" id="load_prev_meme_button">Load prev meme</button>
+						<button class="btn btn-default" id="load_next_meme_button">Load next meme</button>
+						<button class="btn btn-default" id="save_meme_button">Save meme with tags</button>
+						<button class="btn btn-default" id="delete_meme_button">Delete meme</button>
+					</div>
 				</div>
 			</div>
-			<div class="col-md-4">
-				<div class="input-group">
-					<input type="text" class="form-control" id="meme_id_input" />
-					<span class="input-group-btn">
-						<button class="btn btn-default" id="load_specific_meme_button">Load</button>
-					</span>
-				</div>
 
-				<button class="btn btn-default" id="load_prev_meme_button">Load prev meme</button>
-				<button class="btn btn-default" id="load_next_meme_button">Load next meme</button>
-				<button class="btn btn-default" id="save_meme_button">Save meme with tags</button>
-				<button class="btn btn-default" id="delete_meme_button">Delete meme</button>
+			<div id="tags" class="col-md-8">
+				
 			</div>
-		</div>
 
-		<div id="tags" class="row">
-			
+			<button type="button" class="btn btn-success" id="add_tag_button">Create new tag</button>
 		</div>
-
-		<button type="button" class="btn btn-success" id="add_tag_button">Create new tag</button>
 	</div>
 
     <script src="js/bootstrap.min.js"></script>

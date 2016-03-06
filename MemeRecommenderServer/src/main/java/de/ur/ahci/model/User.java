@@ -11,6 +11,8 @@ import java.util.List;
 
 public class User {
 
+    public static final String INDEX_NAME = "users";
+
     public static List<String> getListOfMemeIDsUserHasRated(String userId, ElasticSearchContextListener es) {
         List<String> listOfMemeIDs = new ArrayList<>();
 
@@ -18,7 +20,7 @@ public class User {
         int atATime = 5000; // so that not too many for the system to handle are loaded at once
 
         while(true) {
-            SearchResponse response = es.searchrequest(Rating.ES_INDEX_NAME, QueryBuilders.matchQuery(Rating.ES_USER_ID, userId), start, atATime).actionGet();
+            SearchResponse response = es.searchrequest(Rating.INDEX_NAME, QueryBuilders.matchQuery(Rating.ES_USER_ID, userId), start, atATime).actionGet();
             SearchHits hits = response.getHits();
 
             for(SearchHit hit : hits) {

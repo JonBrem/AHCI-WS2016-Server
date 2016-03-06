@@ -14,12 +14,13 @@ import java.util.Map;
 
 public class Meme {
 
-    public static final String ES_INDEX_MEMES = "memes";
+    public static final String INDEX_NAME = "memes";
 
     public static final String ES_URL = "url";
     public static final String ES_TITLE = "title";
     public static final String ES_IMG_URL = "img_url";
     public static final String ES_TAG_LIST = "tag_list";
+    public static final String ES_TIME_ADDED = "time_added";
 
     private String title;
     private String url;
@@ -97,9 +98,11 @@ public class Meme {
         data.put(ES_URL, url);
         data.put(ES_IMG_URL, imgUrl);
         data.put(ES_TITLE, title);
+        data.put(ES_TAG_LIST, getTags());
+        data.put(ES_TIME_ADDED, System.currentTimeMillis());
 
         try {
-            IndexResponse response = es.indexRequest(ES_INDEX_MEMES, data).actionGet();
+            IndexResponse response = es.indexRequest(INDEX_NAME, data).actionGet();
             return response.getId();
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,7 +117,7 @@ public class Meme {
      * @return the meme object
      */
     public static Meme load(String id, ElasticSearchContextListener es) {
-        SearchResponse response = es.searchrequest(ES_INDEX_MEMES, QueryBuilders.idsQuery(ES_INDEX_MEMES).ids(id), 0, 1).actionGet();
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.idsQuery(INDEX_NAME).ids(id), 0, 1).actionGet();
         SearchHits hits = response.getHits();
 
         if(hits.totalHits() > 0) {

@@ -1,5 +1,6 @@
 package meme_recommender.request_handlers;
 
+import de.ur.ahci.model.Meme;
 import de.ur.ahci.model.Tag;
 import meme_recommender.ElasticSearchContextListener;
 import meme_recommender.RequestHandler;
@@ -130,7 +131,7 @@ public class DbInspectionRequestHandler extends RequestHandler {
                 SearchResponse response = es.searchrequest("memes", QueryBuilders.idsQuery("memes").ids(memeId), 0, 1).actionGet();
                 long currentMemeTime;
                 try {
-                    currentMemeTime = (long) response.getHits().getAt(0).getSource().get("time_added");
+                    currentMemeTime = (long) response.getHits().getAt(0).getSource().get(Meme.ES_TIME_ADDED);
                 } catch (Exception e) {
                     e.printStackTrace();
                     out.write("{\"status\":\"no memes found\"}");
@@ -164,11 +165,11 @@ public class DbInspectionRequestHandler extends RequestHandler {
             out.write("{\n");
 
             out.write("\t\"id\": \"" + hits.getAt(0).getId() + "\",\n");
-            out.write("\t\"url\": \"" + values.get("url") + "\",\n");
-            out.write("\t\"img_url\": \"" + values.get("img_url") + "\",\n");
-            out.write("\t\"title\": \"" + values.get("title") + "\"");
+            out.write("\t\"url\": \"" + values.get(Meme.ES_URL) + "\",\n");
+            out.write("\t\"img_url\": \"" + values.get(Meme.ES_IMG_URL) + "\",\n");
+            out.write("\t\"title\": \"" + ((String) values.get(Meme.ES_TITLE)).replaceAll("\"", "") + "\"");
 
-            writeTagsForMeme(out, (List<Object>) values.get("tag_list"));
+            writeTagsForMeme(out, (List<Object>) values.get(Meme.ES_TAG_LIST));
 
             out.write("}");
         } else {

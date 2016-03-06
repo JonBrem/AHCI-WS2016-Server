@@ -12,6 +12,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.InterruptedIOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -64,8 +65,8 @@ public class CrawlerRequestHandler extends RequestHandler {
         for(String tag : params.get("tag")) {
             try {
                 insertTagIntoDb(tag, memeId, es);
-            } catch (Exception e) {
-
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
             }
         }
 
@@ -89,6 +90,11 @@ public class CrawlerRequestHandler extends RequestHandler {
             } catch (Exception e) {
                 throw e;
             }
+        }
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         if(tagId != null) tag.insertLink(memeId, tagId, es);
     }

@@ -38,27 +38,27 @@ public class MemeRecommender {
         UserPreferences userPreferences = getUserPreferences(userId);
         List<String> memesUserHasRated = User.getListOfMemeIDsUserHasRated(userId, es);
 
-        if(userHasFewRatings(memesUserHasRated)) {
+//        if(userHasFewRatings(memesUserHasRated)) {
             // @todo determine if we need this if/else (basically we would just be guessing anyway...)
 //            if(fewRatingsInGeneral(memesUserHasRated.size())) {
                 return showRandomMemes(howManyMemes, memesUserHasRated);
 //            } else {
 //                return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
 //            }
-        } else {
-            if(fewRatingsInGeneral(memesUserHasRated.size())) {
-                return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
-            } else {
-                List<String> similarUsers = findSimilarUsers(userId, userPreferences);
-                float probability = probabilityOfShowingMemesSimilarUsersLiked(similarUsers);
-                Random rnd = new Random();
-                if (rnd.nextDouble() <= probability) {
-                    return showMemesSimilarUsersLiked(howManyMemes, memesUserHasRated, similarUsers);
-                } else {
-                    return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
-                }
-            }
-        }
+//        } else {
+//            if(fewRatingsInGeneral(memesUserHasRated.size())) {
+//                return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
+//            } else {
+//                List<String> similarUsers = findSimilarUsers(userId, userPreferences);
+//                float probability = probabilityOfShowingMemesSimilarUsersLiked(similarUsers);
+//                Random rnd = new Random();
+//                if (rnd.nextDouble() <= probability) {
+//                    return showMemesSimilarUsersLiked(howManyMemes, memesUserHasRated, similarUsers);
+//                } else {
+//                    return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
+//                }
+//            }
+//        }
     }
 
     // @ todo test
@@ -126,7 +126,7 @@ public class MemeRecommender {
         int size = 5000;
 
         while(true) {
-            SearchResponse response = es.searchrequest(Rating.ES_INDEX_NAME, query, start, size).actionGet();
+            SearchResponse response = es.searchrequest(Rating.INDEX_NAME, query, start, size).actionGet();
             SearchHits hits = response.getHits();
 
             for(SearchHit hit : hits) {
@@ -232,7 +232,7 @@ public class MemeRecommender {
      */
     private List<String> getUsersMatchingSimilarity(String userId, Map<String, UserPreferences.TagPreference> userRatings, int levelOfSimilarity) {
         BoolQueryBuilder query = buildSimilarUserQuery(userId, userRatings, levelOfSimilarity);
-        SearchResponse response = es.searchrequest(UserPreferences.ES_INDEX_NAME, query, 1, 100).actionGet();
+        SearchResponse response = es.searchrequest(UserPreferences.INDEX_NAME, query, 1, 100).actionGet();
         List<String> userIds = new ArrayList<>();
         for(SearchHit hit : response.getHits()) {
             userIds.add(hit.getId());
