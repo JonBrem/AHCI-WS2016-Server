@@ -224,7 +224,7 @@ public class AppRequestHandler extends RequestHandler {
 
             builder.append("\t\t{\n")
                     .append("\t\t\tid: ").append(memes[i].getMeme().getId()).append(",\n")
-                    .append("\t\t\ttitle: \"").append(memes[i].getMeme().getTitle()).append("\",\n")
+                    .append("\t\t\ttitle: \"").append(memes[i].getMeme().getTitle().replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "")).append("\",\n")
                     .append("\t\t\treason: \"").append(memes[i].getReason()).append("\",\n")
                     .append("\t\t\turl: \"").append(memes[i].getMeme().getUrl()).append("\"\n")
                     .append("\t\t}");

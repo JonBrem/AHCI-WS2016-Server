@@ -105,4 +105,18 @@ public class Tag {
     public String getId() {
         return this.id;
     }
+
+    public static Tag getForName(String hugelol, ElasticSearchContextListener es) {
+        SearchResponse response = es.searchrequest(INDEX_NAME, QueryBuilders.matchQuery(ES_TAG_NAME, hugelol), 0, 1).actionGet();
+        SearchHits hits = response.getHits();
+        if(hits.getTotalHits() > 0) {
+            Tag t = new Tag();
+            SearchHit hit = hits.getAt(0);
+            t.setId(hit.getId());
+            t.setTagName((String) hit.getSource().get(ES_TAG_NAME));
+            return t;
+        }
+
+        return null;
+    }
 }

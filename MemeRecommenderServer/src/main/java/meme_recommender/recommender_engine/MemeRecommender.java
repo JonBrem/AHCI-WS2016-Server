@@ -38,27 +38,55 @@ public class MemeRecommender {
         UserPreferences userPreferences = getUserPreferences(userId);
         List<String> memesUserHasRated = User.getListOfMemeIDsUserHasRated(userId, es);
 
+        List<MemeRecommendation> recommendations = new ArrayList<>();
+        if(howManyMemes > 1) {
+            Meme randomHugelolMemeUserHasNotSeen = getRandomHugelolMemeUserHasNotSeen(memesUserHasRated);
+            if(randomHugelolMemeUserHasNotSeen != null) {
+                recommendations.add(new MemeRecommendation(randomHugelolMemeUserHasNotSeen, MemeRecommendation.REASON_RANDOM, ""));
+                howManyMemes--;
+            }
+        }
+
 //        if(userHasFewRatings(memesUserHasRated)) {
-            // @todo determine if we need this if/else (basically we would just be guessing anyway...)
+////             @todo determine if we need this if/else (basically we would just be guessing anyway...)
 //            if(fewRatingsInGeneral(memesUserHasRated.size())) {
-                return showRandomMemes(howManyMemes, memesUserHasRated);
+                recommendations.addAll(Arrays.asList(showRandomMemes(howManyMemes, memesUserHasRated)));
 //            } else {
-//                return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
+//                recommendations.addAll(Arrays.asList(showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences)));
 //            }
 //        } else {
 //            if(fewRatingsInGeneral(memesUserHasRated.size())) {
-//                return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
+//                recommendations.addAll(Arrays.asList(showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences)));
 //            } else {
 //                List<String> similarUsers = findSimilarUsers(userId, userPreferences);
 //                float probability = probabilityOfShowingMemesSimilarUsersLiked(similarUsers);
 //                Random rnd = new Random();
 //                if (rnd.nextDouble() <= probability) {
-//                    return showMemesSimilarUsersLiked(howManyMemes, memesUserHasRated, similarUsers);
+//                    recommendations.addAll(Arrays.asList(showMemesSimilarUsersLiked(howManyMemes, memesUserHasRated, similarUsers)));
 //                } else {
-//                    return showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences);
+//                    recommendations.addAll(Arrays.asList(showMemesForUserPreferences(howManyMemes, memesUserHasRated, userPreferences)));
 //                }
 //            }
 //        }
+
+        MemeRecommendation[] toReturn = new MemeRecommendation[recommendations.size()];
+        for(int i = 0; i < recommendations.size(); i++) toReturn[i] = recommendations.get(i);
+        return toReturn;
+    }
+
+    private Meme getRandomHugelolMemeUserHasNotSeen(List<String> memesUserHasRated) {
+        Tag hugelolTag = Tag.getForName("hugelol", es);
+        if(hugelolTag != null) {
+            SearchResponse response = es.searchrequest(Meme.INDEX_NAME, QueryBuilders.boolQuery()
+                    .must(QueryBuilders.matchQuery(Meme.ES_TAG_LIST, hugelolTag.getId()))
+                    .mustNot(QueryBuilders.idsQuery().ids(memesUserHasRated)), 0, 1).actionGet();
+
+            SearchHits hits = response.getHits();
+            if(hits.getTotalHits() > 0) {
+                return Meme.load(hits.getAt(0).getId(), es);
+            }
+        }
+        return null;
     }
 
     // @ todo test

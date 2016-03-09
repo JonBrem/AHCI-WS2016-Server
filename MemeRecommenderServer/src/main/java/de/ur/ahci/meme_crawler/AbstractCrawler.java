@@ -6,10 +6,7 @@ import org.jsoup.nodes.Document;
 import util.Const;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.*;
 import java.util.*;
 
@@ -97,11 +94,14 @@ public abstract class AbstractCrawler {
             Const.log(Const.LEVEL_VERBOSE, "Crawling " + url);
             try {
                 URL urlObj = new URL(url);
-                Document doc = Jsoup.parse(urlObj, 10000);
+                HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
+                urlConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; U; Android 2.2.1; en-us; Nexus One Build/FRG83) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1");
+
+                Document doc = Jsoup.parse(readFromUrlConnection(urlConnection), url);
+
+//                Document doc = Jsoup.parse(urlObj, 10000);
                 onSiteCrawled(url, doc);
                 return;
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -109,6 +109,18 @@ public abstract class AbstractCrawler {
             onSiteCrawled(url, null);
         }
 
+    }
+
+    protected String readFromUrlConnection(HttpURLConnection urlConnection) throws IOException {
+        StringBuilder site = new StringBuilder();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+        String line;
+        while((line = reader.readLine()) != null) {
+            site.append(line).append("\n");
+        }
+
+        return site.toString();
     }
 
     /**

@@ -1,4 +1,4 @@
-package de.ur.ahci.meme_crawler.ninegag;
+package de.ur.ahci.meme_crawler.hugelol;
 
 import de.ur.ahci.meme_crawler.AbstractCrawler;
 import de.ur.ahci.meme_crawler.CrawlSite;
@@ -8,34 +8,27 @@ import util.Const;
 import util.FileUtility;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-public class NineGagCrawler extends AbstractCrawler {
+public class HugelolCrawler extends AbstractCrawler {
 
-    private static final String FRONTIER = "crawl_dummy_db/nine_gag/url_frontier/frontier_XTAGX.txt";
-    public static final String CRAWLED_SITES = "crawl_dummy_db/nine_gag/crawled_sites";
-
-    public static void main(String... args) {
-        new NineGagCrawler("meme").startCrawl();
-    }
+    private static final String FRONTIER = "crawl_dummy_db/hugelol/url_frontier/hugelol_frontier.txt";
+    public static final String CRAWLED_SITES = "crawl_dummy_db/hugelol/crawled_sites";
 
     private FileUtility fileUtility;
-    private String tag;
 
-    private String frontier;
+    public static void main(String... args) {
+        new HugelolCrawler().startCrawl();
+    }
 
-    public NineGagCrawler(String tag) {
+    public HugelolCrawler() {
         super();
-        fileUtility = new FileUtility();
-        this.tag = tag;
-        this.frontier = FRONTIER.replaceFirst("XTAGX", this.tag);
+        this.fileUtility = new FileUtility();
 
-        readCrawledURLsFromURLdB();
         readURLsToCrawlFromURLFrontier();
+        readCrawledURLsFromURLdB();
     }
 
     @Override
@@ -52,8 +45,8 @@ public class NineGagCrawler extends AbstractCrawler {
     @Override
     protected void readURLsToCrawlFromURLFrontier() {
         this.uRLsToCrawl = new ArrayList<>();
-        fileUtility.forEveryLineIn(frontier, url -> this.uRLsToCrawl.add(url));
-        fileUtility.closeReader(frontier);
+        fileUtility.forEveryLineIn(FRONTIER, url -> this.uRLsToCrawl.add(url));
+        fileUtility.closeReader(FRONTIER);
     }
 
     @Override
@@ -72,14 +65,18 @@ public class NineGagCrawler extends AbstractCrawler {
 
         linesInFrontier.remove(url);
 
-        linesInFrontier.forEach(line -> fileUtility.writeLine(frontier, line));
-        fileUtility.closeWriter(frontier);
+        linesInFrontier.forEach(line -> fileUtility.writeLine(FRONTIER, line));
+        fileUtility.closeWriter(FRONTIER);
     }
+
+    private List<String> getLinesInFrontier() {
+        return getLinesInFile(FRONTIER);
+    }
+
 
     @Override
     public boolean alreadyCrawled(String url) {
         return this.crawledURLs.contains(url);
-
     }
 
     @Override
@@ -89,8 +86,8 @@ public class NineGagCrawler extends AbstractCrawler {
         List<String> linesInFrontier = getLinesInFrontier();
         linesInFrontier.add(url);
 
-        linesInFrontier.forEach(line -> fileUtility.writeLine(frontier, line));
-        fileUtility.closeWriter(frontier);
+        linesInFrontier.forEach(line -> fileUtility.writeLine(FRONTIER, line));
+        fileUtility.closeWriter(FRONTIER);
     }
 
     @Override
@@ -98,29 +95,9 @@ public class NineGagCrawler extends AbstractCrawler {
         new Thread(new MemeStoreThread("http://localhost:8080/crawler/insert", meme)).start();
     }
 
-    private String nDigits(int n, int num) {
-        String s = "" + num;
-        while(s.length() < n) {
-            s = "0" + s;
-        }
-        return s;
-    }
-
     @Override
     protected CrawlSite convertToCrawlSite(String url, Document doc) {
-        return new NineGagSite(url, doc, this.tag);
-    }
-
-    private List<String> getLinesInFrontier() {
-        return getLinesInFile(frontier);
-    }
-
-    private List<String> getLinesInFile(String file) {
-        List<String> linesInFrontier = new ArrayList<>();
-        fileUtility.forEveryLineIn(file, linesInFrontier::add);
-        fileUtility.closeReader(file);
-        return linesInFrontier;
-
+        return new HugelolSite(url, doc);
     }
 
     private String getFileNameInDBDir(String dir) {
@@ -143,5 +120,21 @@ public class NineGagCrawler extends AbstractCrawler {
             }
         }
         return fileName;
+    }
+
+    private List<String> getLinesInFile(String file) {
+        List<String> linesInFrontier = new ArrayList<>();
+        fileUtility.forEveryLineIn(file, linesInFrontier::add);
+        fileUtility.closeReader(file);
+        return linesInFrontier;
+
+    }
+
+    private String nDigits(int n, int num) {
+        String s = "" + num;
+        while(s.length() < n) {
+            s = "0" + s;
+        }
+        return s;
     }
 }

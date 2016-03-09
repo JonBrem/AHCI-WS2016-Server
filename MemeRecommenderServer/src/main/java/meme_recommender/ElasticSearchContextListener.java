@@ -22,6 +22,7 @@ import org.elasticsearch.search.SearchHit;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ElasticSearchContextListener implements ServletContextListener {
@@ -50,9 +51,24 @@ public class ElasticSearchContextListener implements ServletContextListener {
             try {
                 Thread.sleep(8000);
                 UserPrefTotals.reloadCompletely(ElasticSearchContextListener.getInstace());
-
             } catch (Exception ignored) {}
         }).start();
+    }
+
+    private void updateAllHugelolSites() {
+        SearchResponse response = searchrequest(Meme.INDEX_NAME, QueryBuilders.matchQuery(Meme.ES_TAG_LIST, "AVNc-qj4gpR1w0idSex1"), 0, 200).actionGet();
+
+        for(SearchHit hit : response.getHits()) {
+            Map<String, Object> data = new HashMap<>();
+
+            if(!((String) hit.getSource().get("url")).startsWith("http://m.")) {
+                String url = "http://m." + ((String) hit.getSource().get("url")).substring("http://".length());
+                data.put("url", url);
+                updateRequest(Meme.INDEX_NAME, hit.getId(), data);
+            }
+        }
+
+        System.out.println("Done updating hugelol sites!");
     }
 
     /**

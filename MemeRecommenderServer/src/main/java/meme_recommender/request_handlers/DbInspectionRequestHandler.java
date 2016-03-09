@@ -167,7 +167,7 @@ public class DbInspectionRequestHandler extends RequestHandler {
             out.write("\t\"id\": \"" + hits.getAt(0).getId() + "\",\n");
             out.write("\t\"url\": \"" + values.get(Meme.ES_URL) + "\",\n");
             out.write("\t\"img_url\": \"" + values.get(Meme.ES_IMG_URL) + "\",\n");
-            out.write("\t\"title\": \"" + ((String) values.get(Meme.ES_TITLE)).replaceAll("\"", "") + "\"");
+            out.write("\t\"title\": \"" + ((String) values.get(Meme.ES_TITLE)).replaceAll("\"", "").replaceAll("\\\\", "\\\\\\\\") + "\"");
 
             writeTagsForMeme(out, (List<Object>) values.get(Meme.ES_TAG_LIST));
 
