@@ -284,7 +284,7 @@ public class MemeRecommender {
     private MemeRecommendation[] showRandomMemes(int howManyMemes, List<String> memesUserHasRated) {
         QueryBuilder query = QueryBuilders.functionScoreQuery(QueryBuilders.matchAllQuery(),
                 ScoreFunctionBuilders.randomFunction(new Random().nextInt()));
-        QueryBuilder filter = QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("id", memesUserHasRated));
+        QueryBuilder filter = QueryBuilders.boolQuery().mustNot(QueryBuilders.idsQuery(Meme.INDEX_NAME).ids(memesUserHasRated));
         SearchResponse response = es.searchrequest("memes", query, filter, 0, howManyMemes).actionGet();
 
         Meme[] memesFromResultSet = getMemesFromResultSet(howManyMemes, response);
